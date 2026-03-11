@@ -1,4 +1,4 @@
-# DCA-2
+# Portfolio Tracker
 
 Investment portfolio tracker. Monitors positions across multiple brokers and accounts. Positions are imported manually via CSV exports, and valuations are fetched from Yahoo Finance.
 
