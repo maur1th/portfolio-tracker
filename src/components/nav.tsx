@@ -5,10 +5,10 @@ import { FileUp } from "lucide-react";
 
 export function Nav() {
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-30 border-b border-white/8 bg-background/95 backdrop-blur-xl">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold">
+          <Link href="/" className="text-2xl font-semibold tracking-[-0.03em] text-white">
             Portfolio Tracker
           </Link>
           <div className="flex gap-2">

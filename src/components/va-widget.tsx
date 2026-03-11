@@ -1,28 +1,43 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { formatCurrency } from "@/lib/format";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AlertCircle, TrendingUp, Target, Activity, CheckCircle2, Flag, Pencil } from "lucide-react";
+import {
+  Activity,
+  AlertCircle,
+  CheckCircle2,
+  Flag,
+  Pencil,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { DcaSuggestion } from "@/lib/dca-suggestions";
 import type { Geography } from "@/lib/exposure";
-import { computeVariance, computeMonthProgress, computeProgressRatios, buildChartData } from "@/lib/va-calculations";
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { formatCurrency } from "@/lib/format";
+import {
+  buildChartData,
+  computeContributionProgress,
+  computeMonthProgress,
+  computeProgressRatios,
+  computeVariance,
+} from "@/lib/va-calculations";
 
 const GEOGRAPHY_EMOJI: Record<Geography, string> = {
-  "US": "🇺🇸",
-  "Europe": "🇪🇺",
-  "Monde": "🌍",
+  US: "🇺🇸",
+  Europe: "🇪🇺",
+  Monde: "🌍",
   "Émergents": "🌎",
-  "Japon": "🇯🇵",
+  Japon: "🇯🇵",
   "Asie-Pacifique": "🇨🇳",
-  "UK": "🇬🇧",
+  UK: "🇬🇧",
   "Non classé": "📊",
 };
 
@@ -51,6 +66,47 @@ interface VAWidgetProps {
   suggestions: DcaSuggestion[];
   suggestionsAmount: number;
   isNextMonth: boolean;
+}
+
+const statusTone = {
+  ahead: {
+    badge: "text-emerald-200",
+    accent: "text-emerald-300",
+    bar: "bg-emerald-400",
+    track: "bg-emerald-400/16",
+  },
+  behind: {
+    badge: "text-amber-100",
+    accent: "text-amber-300",
+    bar: "bg-amber-400",
+    track: "bg-amber-400/14",
+  },
+  "on-track": {
+    badge: "text-sky-100",
+    accent: "text-sky-300",
+    bar: "bg-sky-400",
+    track: "bg-sky-400/14",
+  },
+} as const;
+
+function SectionCard({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: typeof Activity;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[1rem] border border-white/8 bg-card p-4">
+      <div className="mb-5 flex items-center gap-2 text-white">
+        <Icon className="h-4 w-4 text-slate-300" />
+        <h3 className="text-base font-semibold tracking-[-0.02em]">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
 }
 
 export function VAWidget({
@@ -125,22 +181,21 @@ export function VAWidget({
 
   if (!config || isEditing) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Value Averaging</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-white/8 pb-4">
+          <CardTitle className="text-2xl font-semibold tracking-[-0.04em]">Value Averaging</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           {!config && !isEditing ? (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Définissez une trajectoire de valeur cible pour votre portefeuille.
-                Chaque mois, investissez pour atteindre l'objectif : plus en cas de baisse,
-                moins en cas de hausse.
+            <div className="space-y-5">
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                Définissez une trajectoire cible pour le portefeuille. L&apos;objectif mensuel
+                s&apos;adapte au marché : plus d&apos;investissement après une baisse, moins après une hausse.
               </p>
               <Button onClick={handleSetup}>Configurer Value Averaging</Button>
             </div>
           ) : (
-            <form onSubmit={handleSaveConfig} className="space-y-4">
+            <form onSubmit={handleSaveConfig} className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Date de départ</Label>
                 <Input
@@ -172,23 +227,17 @@ export function VAWidget({
                   onChange={(e) => setInitialValue(e.target.value)}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Valeur du portefeuille au démarrage du plan
-                </p>
+                <p className="text-xs text-muted-foreground">Valeur du portefeuille au démarrage du plan</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 md:col-span-3">
                 <Button type="submit" disabled={loading}>
                   {loading ? "Enregistrement..." : "Enregistrer"}
                 </Button>
-                {config && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
-                  >
+                {config ? (
+                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
                     Annuler
                   </Button>
-                )}
+                ) : null}
               </div>
             </form>
           )}
@@ -205,284 +254,332 @@ export function VAWidget({
     calculation.currentValue,
     calculation.targetValue
   );
-
   const { daysRemaining, daysProgress } = computeMonthProgress(new Date());
-
+  const contributionProgress = computeContributionProgress(
+    contributionsThisMonth,
+    calculation.amountToInvest,
+    daysProgress
+  );
   const chartData = buildChartData(config, snapshotHistory);
-
   const { targetRatio, currentRatio } = computeProgressRatios(
     calculation.currentValue,
     calculation.targetValue
   );
-
   const nextMonthTarget = calculation.currentValue + config.monthlyIncrement;
+  const targetLeft = Math.max(6, Math.min(targetRatio, 94));
+  const currentLeft = Math.max(6, Math.min(currentRatio, 100));
+  const headerTone = calculation.onTrack ? statusTone.ahead : statusTone.behind;
+  const paceTone = statusTone[contributionProgress.pace];
+  const monthPaceLabel =
+    contributionProgress.pace === "ahead"
+      ? "Rythme d'investissement en avance"
+      : contributionProgress.pace === "behind"
+        ? "Rythme d'investissement en retard"
+        : "Rythme d'investissement dans la cible";
 
   return (
-    <Card className="overflow-hidden shadow-xl">
-      <CardHeader className="border-b border-border flex flex-row items-center justify-between py-3 px-5 space-y-0">
-        <div className="flex items-center gap-2">
-          <Activity className="w-5 h-5 text-muted-foreground" />
-          <CardTitle className="text-sm font-semibold">Value Averaging</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-white/8 py-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full border border-white/10 bg-white/5 p-2">
+            <Activity className="h-4 w-4 text-emerald-300" />
+          </div>
+          <div>
+            <CardTitle className="text-xl font-semibold tracking-[-0.03em]">Value Averaging</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">Pilotage mensuel de la trajectoire cible du portefeuille</p>
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
-        {/* Header Banner */}
-        <div className="px-5 py-4 border-b border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-[15px] font-bold tracking-tight flex items-center gap-2 whitespace-nowrap">
-            Statut : <span className={calculation.onTrack ? "text-emerald-400 font-normal" : "text-amber-400 font-normal"}>{calculation.onTrack ? "En avance" : "En retard"}</span>
-          </div>
+      <CardContent className="space-y-5 p-4 md:p-5">
+        <div className={`relative overflow-hidden rounded-[1rem] border border-white/8 bg-card px-5 py-4 ${headerTone.track}`}>
+          <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-baseline gap-2">
+              <span className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] text-white">Statut:</span>
+              <span className={`text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] ${headerTone.badge}`}>
+                {calculation.onTrack ? "En avance sur l'objectif" : "Sous la cible"}
+              </span>
+            </div>
 
-          {/* Custom Progress Bar */}
-          <div className="flex-1 mx-4 relative hidden md:block mt-6">
-            <div className="w-full h-1 bg-muted rounded-full flex overflow-hidden">
+            <div className="relative min-h-16 flex-1 xl:mx-8">
+              <div className="absolute inset-x-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full bg-white/10" />
               <div
-                className={`h-full ${calculation.onTrack ? "bg-emerald-500/80" : "bg-amber-500/80"}`}
-                style={{ width: `${currentRatio}%` }}
-              ></div>
-            </div>
-            {/* Target Marker */}
-            <div
-              className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center"
-              style={{ left: `${targetRatio}%`, transform: `translate(-50%, -50%)` }}
-            >
-              <div className="w-2.5 h-2.5 bg-card rounded-full flex items-center justify-center z-10 border border-emerald-400">
-                <div className="w-1 h-1 bg-emerald-400 rounded-full"></div>
+                className="absolute left-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full border-t-2 border-dashed border-white/35"
+                style={{ width: `${targetLeft}%` }}
+              />
+              <div
+                className={`absolute left-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full ${headerTone.bar}`}
+                style={{ width: `${currentLeft}%` }}
+              />
+              <div
+                className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+                style={{ left: `${targetLeft}%` }}
+              >
+                <Flag className="mb-3 h-4 w-4 fill-emerald-300/20 text-emerald-300" />
+                <div className="h-4 w-4 rounded-full border border-emerald-300 bg-slate-950/90 shadow-[0_0_18px_rgba(110,231,183,0.35)]">
+                  <div className="m-auto mt-[3px] h-2 w-2 rounded-full bg-emerald-300" />
+                </div>
               </div>
-              <div className="absolute -top-5">
-                 <Flag className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400/20" />
+              <div
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${currentLeft}%` }}
+              >
+                <div className="h-3 w-3 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.45)]" />
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="text-[15px] font-bold tracking-tight whitespace-nowrap">
-              À investir : <span className={calculation.amountToInvest === 0 ? "text-emerald-400 font-normal" : "text-amber-400 font-normal"}>{formatCurrency(calculation.amountToInvest)}</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 xl:justify-end">
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">À investir</div>
+                <div className={`text-[clamp(1.2rem,1.9vw,1.6rem)] font-semibold tracking-[-0.03em] ${calculation.amountToInvest === 0 ? "text-emerald-200" : "text-amber-200"}`}>
+                  {formatCurrency(calculation.amountToInvest)}
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleEdit} className="h-10 px-4">
+                <Pencil className="h-3.5 w-3.5" />
+                Modifier
+              </Button>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEdit}
-              className="rounded-full h-7 px-3 text-xs font-medium"
-            >
-              <Pencil className="w-3 h-3 mr-1.5" /> Modifier
-            </Button>
           </div>
         </div>
 
-        {!hasSnapshotThisMonth && (
-          <div className="px-5 pt-4">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Prix non actualisés depuis le {latestSnapshotDate || "jamais"}.
-                Actualisez les prix pour un calcul précis.
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
+        {!hasSnapshotThisMonth ? (
+          <Alert className="border-amber-400/20 bg-amber-400/8 text-amber-50 [&>svg]:text-amber-300">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Prix non actualisés depuis le {latestSnapshotDate || "jamais"}. Actualisez les prix pour un calcul précis.
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
-        {/* Top 3 Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border border-b border-border">
-          {/* Situation actuelle */}
-          <div className="p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-5">
-              <Target className="w-4 h-4" />
-              <h3 className="text-sm font-semibold">Situation actuelle</h3>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1 font-medium">Valeur actuelle</div>
-                <div className="text-[28px] font-bold tracking-tight leading-none">{formatCurrency(calculation.currentValue)}</div>
-              </div>
-              <div className="flex justify-between items-end border-t border-border pt-4">
+        <div className="grid gap-4 xl:grid-cols-3">
+          <SectionCard icon={Target} title="Current Standings">
+            <div className="grid gap-5">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1 font-medium">Objectif</div>
-                  <div className="text-sm font-semibold">{formatCurrency(calculation.targetValue)}</div>
+                  <div className="text-sm text-muted-foreground">Valeur actuelle</div>
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white">
+                    {formatCurrency(calculation.currentValue)}
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <div className="text-sm text-muted-foreground">Trajectoire cible</div>
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-300">
+                    {formatCurrency(calculation.targetValue)}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/8 pt-4">
+                <span className="text-sm text-muted-foreground">Variance</span>
+                <span className={`flex items-center gap-1 text-lg font-semibold tracking-[-0.03em] ${varianceIsPositive ? "text-emerald-300" : "text-rose-300"}`}>
+                  {varianceIsPositive ? "+" : ""}
+                  {formatCurrency(variance)}
+                  {varianceIsPositive ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                </span>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard icon={Activity} title="Monthly Activity">
+            <div className="grid gap-5">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <div className="text-sm text-muted-foreground">Investi ce mois</div>
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white">
+                    {formatCurrency(contributionsThisMonth)}
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <div className="text-sm text-muted-foreground">Reste à investir</div>
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-200">
+                    {formatCurrency(calculation.amountToInvest)}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3 border-t border-white/8 pt-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${paceTone.accent} font-medium`}>{monthPaceLabel}</span>
+                  <span className="text-muted-foreground">{daysRemaining} jours restants</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="relative h-3 overflow-hidden rounded-full bg-white/8">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full bg-white/10"
+                      style={{ width: `${contributionProgress.expectedRatio}%` }}
+                    />
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${paceTone.bar}`}
+                      style={{ width: `${contributionProgress.actualRatio}%` }}
+                    />
+                    <div
+                      className="absolute inset-y-[-4px] w-px bg-white/70"
+                      style={{ left: `${Math.max(0, Math.min(contributionProgress.expectedRatio, 100))}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+                    <span>Progression du mois</span>
+                    <span>{contributionProgress.actualRatio.toFixed(0)}% investi / {contributionProgress.expectedRatio.toFixed(0)}% attendu</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard icon={TrendingUp} title="Next Month Preview">
+            <div className="grid gap-5">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <div className="text-sm text-muted-foreground">Total projeté</div>
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white">
+                    {formatCurrency(nextMonthTarget)}
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <div className="text-sm text-muted-foreground">Stratégie</div>
+                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-200">Incrément standard</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/8 pt-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">Incrément mensuel</div>
+                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-white">
+                    {formatCurrency(config.monthlyIncrement)}
+                  </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-muted-foreground mb-1 font-medium text-right">Écart</div>
-                  <div className={`text-sm font-semibold flex items-center justify-end gap-1 ${varianceIsPositive ? "text-emerald-400" : "text-rose-400"}`}>
-                    {varianceIsPositive ? "+" : ""}{formatCurrency(variance)}
-                    {varianceIsPositive ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
-                  </div>
+                  <div className="text-sm text-muted-foreground">Mois écoulés</div>
+                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-200">{calculation.monthsElapsed}</div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Activité du mois */}
-          <div className="p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-5">
-              <Activity className="w-4 h-4" />
-              <h3 className="text-sm font-semibold">Activité du mois</h3>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1 font-medium">Investi ce mois</div>
-                <div className="text-[28px] font-bold tracking-tight leading-none">{formatCurrency(contributionsThisMonth)}</div>
-              </div>
-              <div className="flex flex-col gap-2 border-t border-border pt-4">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1 font-medium">Reste à investir</div>
-                    <div className="text-sm font-semibold">{formatCurrency(calculation.amountToInvest)}</div>
-                  </div>
-                </div>
-                <div className="pt-2">
-                   <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5 font-medium">
-                     <span>Jours restants</span>
-                     <span>{daysRemaining} jours</span>
-                   </div>
-                   <div className="h-[4px] bg-muted rounded-full overflow-hidden">
-                     <div className="h-full bg-muted-foreground/40 rounded-full" style={{ width: `${daysProgress}%` }}></div>
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mois prochain */}
-          <div className="p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-5">
-              <TrendingUp className="w-4 h-4" />
-              <h3 className="text-sm font-semibold">Mois prochain</h3>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1 font-medium">Incrément mensuel</div>
-                <div className="text-[28px] font-bold tracking-tight leading-none">{formatCurrency(config.monthlyIncrement)}</div>
-              </div>
-              <div className="flex justify-between items-end border-t border-border pt-4">
-                 <div>
-                   <div className="text-xs text-muted-foreground mb-1 font-medium">Projection le mois prochain</div>
-                   <div className="text-sm font-semibold">{formatCurrency(nextMonthTarget)}</div>
-                 </div>
-                 <div className="text-right">
-                   <div className="text-xs text-muted-foreground mb-1 font-medium text-right">Mois écoulés</div>
-                   <div className="text-sm font-semibold">{calculation.monthsElapsed}</div>
-                 </div>
-              </div>
-            </div>
-          </div>
+          </SectionCard>
         </div>
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] divide-y md:divide-y-0 md:divide-x divide-border">
-          {/* Suggestions */}
-          <div className="p-5">
-             <div className="flex items-center gap-2 mb-1">
-               <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-               <h3 className="text-sm font-semibold">
-                 {isNextMonth ? "Suggestions DCA — mois prochain" : "Suggestions DCA"}
-               </h3>
-             </div>
-             <div className="text-[13px] text-muted-foreground mb-4 ml-6 font-medium">Basé sur {formatCurrency(config.monthlyIncrement)} d'incrément mensuel</div>
+        <div className="grid gap-4 xl:grid-cols-[1.05fr_1fr]">
+          <div className="rounded-[1rem] border border-white/8 bg-card p-4">
+            <div className="mb-5 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+              <h3 className="text-base font-semibold tracking-[-0.02em] text-white">
+                {isNextMonth ? "Next Month Suggestions" : "Suggestions du mois"}
+              </h3>
+              <span className="text-sm text-muted-foreground">Basé sur {formatCurrency(suggestionsAmount || config.monthlyIncrement)}</span>
+            </div>
 
-             <div className="space-y-0 flex flex-col">
-               {suggestions.length > 0 ? suggestions.map((s, idx) => {
-                  const allocation = suggestionsAmount > 0 ? (s.suggestedAmount / suggestionsAmount) * 100 : 0;
-                  const emoji = GEOGRAPHY_EMOJI[s.category as Geography] ?? "📊";
+            {suggestions.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {suggestions.map((suggestion) => {
+                  const allocation = suggestionsAmount > 0 ? (suggestion.suggestedAmount / suggestionsAmount) * 100 : 0;
+                  const emoji = GEOGRAPHY_EMOJI[suggestion.category as Geography] ?? "📊";
+
                   return (
-                    <div key={`${s.ticker}-${s.category}`} className={`py-4 ${idx !== suggestions.length - 1 ? 'border-b border-border' : ''}`}>
-                      <div className="flex justify-between items-start mb-1.5">
-                        <span className="font-bold text-[13px] line-clamp-1 mr-2" title={s.instrumentName}>[ETF] {s.instrumentName}</span>
-                        <span className="text-base leading-none" title={s.category}>
+                    <div
+                      key={`${suggestion.ticker}-${suggestion.category}`}
+                      className="rounded-[0.95rem] border border-white/10 bg-background/30 p-4"
+                    >
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="line-clamp-2 text-sm font-semibold tracking-[-0.02em] text-white">
+                            [ETF] {suggestion.instrumentName}
+                          </div>
+                        </div>
+                        <div className="text-xl leading-none" title={suggestion.category}>
                           {emoji}
-                        </span>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground mb-1 font-medium">
-                        Allocation : {allocation.toFixed(0)}% <span className="mx-1 opacity-40">|</span> <span className="font-bold text-foreground">{formatCurrency(s.suggestedAmount)}</span>
+                      <div className="mb-4 text-sm text-slate-300">
+                        Allocation: {allocation.toFixed(0)}% <span className="mx-1 text-white/20">|</span>
+                        <span className="font-semibold text-white">{formatCurrency(suggestion.suggestedAmount)}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground/60 font-medium">
-                        {s.ticker} • {s.accountName}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{suggestion.ticker} · {suggestion.accountName}</div>
                     </div>
-                  )
-               }) : (
-                 <div className="text-sm text-muted-foreground py-4 text-center">Aucune suggestion pour le moment.</div>
-               )}
-             </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-[1rem] border border-dashed border-white/10 bg-white/3 px-4 py-8 text-center text-sm text-muted-foreground">
+                Aucune suggestion pour le moment.
+              </div>
+            )}
           </div>
 
-          {/* Chart */}
-          <div className="p-5 flex flex-col">
-             <div className="mb-6">
-               <h3 className="text-sm font-semibold inline-block">
-                 Historique <span className="text-[13px] text-muted-foreground ml-1 font-medium">(6 derniers mois)</span>
-               </h3>
+          <div className="rounded-[1rem] border border-white/8 bg-card p-4">
+            <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <h3 className="text-base font-semibold tracking-[-0.02em] text-white">
+                Historical Performance <span className="text-sm text-muted-foreground">(6 derniers mois)</span>
+              </h3>
+              <div className="flex flex-wrap items-center gap-5 text-sm text-slate-300">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 border-t-2 border-dashed border-white/50" />
+                  <span>Trajectoire cible</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-[2px] w-8 bg-emerald-300" />
+                  <span>Valeur réelle</span>
+                </div>
+              </div>
+            </div>
 
-               <div className="flex items-center justify-start md:justify-between w-full text-xs text-muted-foreground font-medium mt-3">
-                 <div className="flex items-center gap-6">
-                   <div className="flex items-center gap-2">
-                     <div className="w-5 h-0 border-t-[2px] border-dashed border-emerald-500/80"></div>
-                     <span>Trajectoire cible</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <div className="w-5 h-[2px] bg-emerald-400"></div>
-                     <span>Valeur réelle</span>
-                   </div>
-                 </div>
-               </div>
-             </div>
-
-             <div className="flex-1 min-h-[220px] w-full">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <XAxis
-                        dataKey="date"
-                        axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
-                        tickLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 500 }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 500 }}
-                        tickFormatter={(v) => `${(v / 1000).toFixed(0)}k €`}
-                        orientation="right"
-                        dx={10}
-                        domain={['auto', 'auto']}
-                      />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)' }}
-                        itemStyle={{ color: 'hsl(var(--foreground))', fontSize: '13px', fontWeight: 600 }}
-                        labelStyle={{ color: 'hsl(var(--muted-foreground))', fontSize: '12px', marginBottom: '4px', fontWeight: 500 }}
-                        formatter={(value: number, name: string) => [
-                          formatCurrency(value),
-                          name === 'target' ? 'Objectif' : 'Valeur réelle'
-                        ]}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="target"
-                        stroke="#10b981"
-                        strokeWidth={2}
-                        strokeDasharray="4 4"
-                        dot={false}
-                        activeDot={{ r: 4, fill: '#10b981', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
-                        name="target"
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="actual"
-                        stroke="#34d399"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4, fill: '#34d399', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
-                        name="actual"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                    Données insuffisantes.
-                  </div>
-                )}
-             </div>
+            <div className="h-[250px] w-full">
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 8, right: 16, left: -16, bottom: 0 }}>
+                    <XAxis
+                      dataKey="date"
+                      axisLine={{ stroke: "rgba(255,255,255,0.14)" }}
+                      tickLine={false}
+                      tick={{ fill: "rgba(203,213,225,0.86)", fontSize: 12 }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "rgba(203,213,225,0.86)", fontSize: 12 }}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k €`}
+                      orientation="right"
+                      dx={10}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "rgba(15, 23, 42, 0.96)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "18px",
+                        boxShadow: "0 16px 40px rgba(2, 6, 23, 0.45)",
+                      }}
+                      itemStyle={{ color: "#f8fafc", fontSize: "13px", fontWeight: 600 }}
+                      labelStyle={{ color: "rgba(203,213,225,0.86)", fontSize: "12px", marginBottom: "4px" }}
+                      formatter={(value: number, name: string) => [
+                        formatCurrency(value),
+                        name === "target" ? "Objectif" : "Valeur réelle",
+                      ]}
+                    />
+                    <ReferenceLine y={calculation.targetValue} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 6" />
+                    <Line
+                      type="monotone"
+                      dataKey="target"
+                      stroke="rgba(226,232,240,0.72)"
+                      strokeWidth={2}
+                      strokeDasharray="6 6"
+                      dot={false}
+                      activeDot={{ r: 4, fill: "#f8fafc", stroke: "rgba(15,23,42,0.96)", strokeWidth: 2 }}
+                      name="target"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="actual"
+                      stroke="#7be0bb"
+                      strokeWidth={3}
+                      dot={false}
+                      activeDot={{ r: 5, fill: "#7be0bb", stroke: "rgba(15,23,42,0.96)", strokeWidth: 2 }}
+                      name="actual"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  Données insuffisantes.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

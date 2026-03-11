@@ -4,7 +4,6 @@ import { AccountCard } from "@/components/account-card";
 import { PositionsTable } from "@/components/positions-table";
 import { VAWidget } from "@/components/va-widget";
 import { ExposureCharts } from "@/components/exposure-charts";
-import { PortfolioChart } from "@/components/portfolio-chart";
 import { Separator } from "@/components/ui/separator";
 import { PriceRefreshButton } from "@/components/price-refresh-button";
 import {
@@ -78,8 +77,8 @@ export default async function HomePage() {
       : [];
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <PortfolioSummary positions={positions} />
+    <div className="container mx-auto space-y-8 px-4 py-8">
+      <PortfolioSummary positions={positions} snapshotHistory={snapshotHistory} />
 
       <VAWidget
         config={vaConfig}
@@ -92,8 +91,6 @@ export default async function HomePage() {
         suggestionsAmount={suggestionsAmount}
         isNextMonth={isNextMonth ?? false}
       />
-
-      <PortfolioChart snapshotHistory={snapshotHistory} />
 
       <ExposureCharts
         exposure={exposure}

@@ -41,6 +41,35 @@ export function computeProgressRatios(currentValue: number, targetValue: number)
   };
 }
 
+export function computeContributionProgress(
+  contributedThisMonth: number,
+  remainingToInvest: number,
+  daysProgress: number
+) {
+  const plannedContribution = Math.max(contributedThisMonth + remainingToInvest, 0);
+  const actualRatio =
+    plannedContribution > 0
+      ? Math.min((contributedThisMonth / plannedContribution) * 100, 100)
+      : 100;
+  const expectedRatio = Math.min(Math.max(daysProgress, 0), 100);
+  const delta = actualRatio - expectedRatio;
+
+  let pace: "ahead" | "on-track" | "behind" = "on-track";
+  if (delta > 5) {
+    pace = "ahead";
+  } else if (delta < -5) {
+    pace = "behind";
+  }
+
+  return {
+    plannedContribution,
+    actualRatio,
+    expectedRatio,
+    delta,
+    pace,
+  };
+}
+
 export function buildChartData(
   config: { startDate: string; monthlyIncrement: number; initialValue: number },
   snapshotHistory: Array<{ date: string; totalValueEur: number }>,

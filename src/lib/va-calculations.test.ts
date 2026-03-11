@@ -4,6 +4,7 @@ import {
   computeVariance,
   computeMonthProgress,
   computeProgressRatios,
+  computeContributionProgress,
   buildChartData,
 } from "./va-calculations";
 
@@ -95,6 +96,29 @@ describe("computeProgressRatios", () => {
     const result = computeProgressRatios(0, 0);
     expect(result.targetRatio).toBe(0);
     expect(result.currentRatio).toBe(0);
+  });
+});
+
+describe("computeContributionProgress", () => {
+  it("computes the month plan and actual ratio", () => {
+    const result = computeContributionProgress(400, 600, 50);
+    expect(result.plannedContribution).toBe(1000);
+    expect(result.actualRatio).toBe(40);
+    expect(result.expectedRatio).toBe(50);
+    expect(result.pace).toBe("behind");
+  });
+
+  it("marks progress as ahead when contributions exceed the schedule", () => {
+    const result = computeContributionProgress(700, 300, 50);
+    expect(result.actualRatio).toBe(70);
+    expect(result.pace).toBe("ahead");
+  });
+
+  it("treats months with nothing left to invest as complete", () => {
+    const result = computeContributionProgress(0, 0, 40);
+    expect(result.plannedContribution).toBe(0);
+    expect(result.actualRatio).toBe(100);
+    expect(result.pace).toBe("ahead");
   });
 });
 
