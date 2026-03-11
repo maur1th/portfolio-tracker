@@ -32,7 +32,7 @@ export function AccountCard({ summary }: AccountCardProps) {
               <div className="text-sm text-muted-foreground">Gain/Perte</div>
               <div
                 className={`font-semibold ${
-                  summary.gainLoss >= 0 ? "text-green-600" : "text-red-600"
+                  summary.gainLoss >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {formatCurrency(summary.gainLoss)} (
