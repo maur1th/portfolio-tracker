@@ -55,6 +55,7 @@ Personal investment portfolio tracker. Monitors positions across Boursobank (1 P
 - Tests live next to source files (e.g. `positions.ts` → `positions.test.ts`)
 - Extract business logic into pure functions (no DB/network) so they are easily testable
 - Always write unit tests for new or modified business logic in `src/lib/`
+- Before committing, always run `pnpm test` and verify all tests pass
 
 ## Code Style
 
