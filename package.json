@@ -11,7 +11,9 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "fix-gbp": "tsx scripts/fix-gbp-pence.ts",
-    "recompute-positions": "tsx scripts/recompute-positions.ts"
+    "recompute-positions": "tsx scripts/recompute-positions.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
@@ -49,7 +51,8 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "packageManager": "pnpm@10.29.3"
 }

@@ -4,6 +4,7 @@ import { instruments, positions, transactions, prices } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { lookupInstrument, searchBySymbolAndName, fetchPrices } from "@/lib/yahoo-finance";
 import { recordSnapshots } from "@/lib/snapshots";
+import { computeWeightedPositions } from "@/lib/positions";
 import type { ParsedTransaction } from "@/lib/csv-parsers/types";
 
 export async function POST(request: NextRequest) {
@@ -216,15 +217,10 @@ async function resolveInstrumentId(
 }
 
 async function recomputePositions(accountId: number): Promise<number> {
-  // Get all trade transactions for this account
   const allTxns = await db
     .select()
     .from(transactions)
-    .where(
-      and(
-        eq(transactions.accountId, accountId),
-      )
-    )
+    .where(eq(transactions.accountId, accountId))
     .orderBy(transactions.date);
 
   const tradeTxns = allTxns.filter(
@@ -232,56 +228,30 @@ async function recomputePositions(accountId: number): Promise<number> {
       (t.transactionType === "buy" || t.transactionType === "sell") &&
       t.instrumentId !== null &&
       t.quantity !== null &&
-      (t.price !== null || t.grossAmount !== null)
+      t.price !== null
   );
 
-  // Group by instrumentId and compute weighted-average positions
-  const byInstrument = new Map<number, { quantity: number; totalCost: number }>();
+  const computed = computeWeightedPositions(
+    tradeTxns.map((t) => ({
+      instrumentId: t.instrumentId!,
+      transactionType: t.transactionType,
+      quantity: t.quantity!,
+      price: t.price!,
+    }))
+  );
 
-  for (const txn of tradeTxns) {
-    const instId = txn.instrumentId!;
-    if (!byInstrument.has(instId)) {
-      byInstrument.set(instId, { quantity: 0, totalCost: 0 });
-    }
-    const pos = byInstrument.get(instId)!;
-
-    const absQty = Math.abs(txn.quantity!);
-
-    if (txn.transactionType === "buy") {
-      // Prefer grossAmount (more accurate) over quantity * price
-      const cost = txn.grossAmount !== null
-        ? Math.abs(txn.grossAmount)
-        : absQty * txn.price!;
-      pos.totalCost += cost;
-      pos.quantity += absQty;
-    } else if (txn.transactionType === "sell") {
-      if (pos.quantity > 0) {
-        const ratio = absQty / pos.quantity;
-        pos.totalCost -= ratio * pos.totalCost;
-      }
-      pos.quantity -= absQty;
-    }
-  }
-
-  // Replace positions for this account
   await db.delete(positions).where(eq(positions.accountId, accountId));
 
-  let count = 0;
   const now = new Date().toISOString();
-
-  for (const [instrumentId, { quantity, totalCost }] of byInstrument) {
-    if (quantity <= 0) continue;
-
+  for (const pos of computed) {
     await db.insert(positions).values({
       accountId,
-      instrumentId,
-      quantity,
-      avgCostPerUnit: totalCost / quantity,
+      instrumentId: pos.instrumentId,
+      quantity: pos.quantity,
+      avgCostPerUnit: pos.avgCostPerUnit,
       importedAt: now,
     });
-
-    count++;
   }
 
-  return count;
+  return computed.length;
 }
