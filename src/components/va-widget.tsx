@@ -356,7 +356,7 @@ export function VAWidget({
               </div>
               <div className="flex justify-between items-end border-t border-border pt-4">
                  <div>
-                   <div className="text-xs text-muted-foreground mb-1 font-medium">Objectif projeté</div>
+                   <div className="text-xs text-muted-foreground mb-1 font-medium">Projection le mois prochain</div>
                    <div className="text-sm font-semibold">{formatCurrency(nextMonthTarget)}</div>
                  </div>
                  <div className="text-right">
