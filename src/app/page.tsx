@@ -16,6 +16,8 @@ import {
   computePortfolioTotalEUR,
 } from "@/lib/value-averaging";
 import { computeExposure, getLastCountryWeightsFetchDate } from "@/lib/exposure";
+import { loadTargets } from "@/lib/targets";
+import { computeDcaSuggestions } from "@/lib/dca-suggestions";
 
 export default async function HomePage() {
   const positions = await getPortfolioPositions();
@@ -27,6 +29,7 @@ export default async function HomePage() {
   const { totalValueEur } = await computePortfolioTotalEUR(positions);
   const exposure = await computeExposure(positions);
   const lastCountryWeightsFetchDate = getLastCountryWeightsFetchDate();
+  const targets = loadTargets();
 
   let vaCalculation = null;
   let contributionsThisMonth = 0;
@@ -56,6 +59,24 @@ export default async function HomePage() {
     }
   }
 
+  const isNextMonth = vaCalculation?.amountToInvest === 0;
+  const suggestionsAmount =
+    vaCalculation && vaConfig
+      ? isNextMonth
+        ? vaConfig.monthlyIncrement
+        : vaCalculation.amountToInvest
+      : 0;
+  const suggestions =
+    suggestionsAmount > 0
+      ? computeDcaSuggestions({
+          amountToInvest: suggestionsAmount,
+          positions,
+          exposure,
+          geoTargets: targets.geography,
+          capTargets: targets.marketCap,
+        })
+      : [];
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       <PortfolioSummary positions={positions} />
@@ -67,11 +88,19 @@ export default async function HomePage() {
         contributionsThisMonth={contributionsThisMonth}
         snapshotHistory={snapshotHistory}
         currentPortfolioValue={totalValueEur}
+        suggestions={suggestions}
+        suggestionsAmount={suggestionsAmount}
+        isNextMonth={isNextMonth ?? false}
       />
 
       <PortfolioChart snapshotHistory={snapshotHistory} />
 
-      <ExposureCharts exposure={exposure} lastCountryWeightsFetchDate={lastCountryWeightsFetchDate} />
+      <ExposureCharts
+        exposure={exposure}
+        lastCountryWeightsFetchDate={lastCountryWeightsFetchDate}
+        geoTargets={targets.geography}
+        capTargets={targets.marketCap}
+      />
 
       <div>
         <h2 className="text-2xl font-bold mb-4">Comptes</h2>
