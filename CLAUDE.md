@@ -49,6 +49,13 @@ Personal investment portfolio tracker. Monitors positions across Boursobank (1 P
 - **GBp normalization**: UK instruments returned by Yahoo Finance in pence (GBp/GBX) are normalized to pounds (GBP) by dividing prices by 100
 - Number formatting uses `fr-FR` locale
 
+## Testing
+
+- **Framework**: Vitest (`pnpm test` to run, `pnpm test:watch` for watch mode)
+- Tests live next to source files (e.g. `positions.ts` → `positions.test.ts`)
+- Extract business logic into pure functions (no DB/network) so they are easily testable
+- Always write unit tests for new or modified business logic in `src/lib/`
+
 ## Code Style
 
 - Use comments sparingly. Only comment complex code.
