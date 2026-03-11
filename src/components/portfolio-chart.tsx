@@ -26,15 +26,16 @@ const chartConfig = {
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
 export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) {
   if (snapshotHistory.length === 0) return null;
+  const chartData = snapshotHistory.slice(-12);
 
   return (
     <ChartContainer config={chartConfig} className="h-[300px] w-full">
-      <LineChart data={snapshotHistory} accessibilityLayer>
+      <LineChart data={chartData} accessibilityLayer>
         <XAxis
           dataKey="date"
           tickFormatter={formatDateLabel}

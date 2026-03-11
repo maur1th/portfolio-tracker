@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { instruments, prices, positions } from "@/db/schema";
 import { fetchPrices } from "@/lib/yahoo-finance";
+import { refreshExchangeRates } from "@/lib/currencies";
 import { recordSnapshots } from "@/lib/snapshots";
 import { eq, inArray } from "drizzle-orm";
 
@@ -21,6 +22,9 @@ export async function POST() {
       .select()
       .from(instruments)
       .where(inArray(instruments.id, activeInstrumentIds));
+
+    const currencies = allInstruments.map((instrument) => instrument.currency);
+    await refreshExchangeRates(currencies);
 
     const tickers = allInstruments.map((i) => i.ticker);
     const priceMap = await fetchPrices(tickers);

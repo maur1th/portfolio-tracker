@@ -27,38 +27,21 @@
     --chart-3: 204 53% 61%;
     --chart-4: 39 80% 67%;
     --chart-5: 343 65% 64%;
-  }
-
-  .dark {
-    --background: 218 53% 8%;
-    --foreground: 210 40% 96%;
-    --card: 220 39% 14%;
-    --card-foreground: 210 40% 96%;
-    --popover: 220 39% 14%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 152 62% 67%;
-    --primary-foreground: 220 46% 10%;
-    --secondary: 216 34% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 216 30% 20%;
-    --muted-foreground: 213 20% 72%;
-    --accent: 210 29% 22%;
-    --accent-foreground: 210 40% 96%;
-    --destructive: 0 70% 58%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 212 28% 23%;
-    --input: 212 28% 23%;
-    --ring: 152 62% 67%;
-    --chart-1: 152 62% 67%;
-    --chart-2: 175 48% 58%;
-    --chart-3: 204 53% 61%;
-    --chart-4: 39 80% 67%;
-    --chart-5: 343 65% 64%;
+    --surface-muted: 216 31% 16%;
+    --surface-tint-success: 179 74% 17%;
+    --surface-tint-warning: 35 75% 18%;
+    --surface-tint-info: 203 70% 18%;
+    --line-soft: 214 24% 34%;
+    --text-soft: 215 24% 82%;
+    --success: 152 62% 67%;
+    --warning: 43 92% 72%;
+    --danger: 349 76% 72%;
   }
 
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    color-scheme: dark;
     min-height: 100vh;
   }
 

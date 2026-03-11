@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { instruments, positions, prices } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { lookupInstrument, searchByISIN, fetchPrices } from "@/lib/yahoo-finance";
+import { refreshExchangeRates } from "@/lib/currencies";
 import { recordSnapshots } from "@/lib/snapshots";
 
 export interface ParsedPosition {
@@ -119,8 +120,13 @@ export async function POST(request: NextRequest) {
     const tickers = accountPositions
       .map((p) => p.instruments?.ticker)
       .filter((t): t is string => !!t);
+    const currencies = accountPositions
+      .map((p) => p.instruments?.currency)
+      .filter((currency): currency is string => !!currency);
 
     if (tickers.length > 0) {
+      await refreshExchangeRates(currencies);
+
       const priceMap = await fetchPrices(tickers);
       const now = new Date().toISOString();
       const priceUpdates = [];

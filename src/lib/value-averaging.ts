@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { vaConfig, positionSnapshots, positions, instruments } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
-import { convertToEUR } from "./currencies";
 import type { PortfolioPosition } from "@/types";
 
 export interface VAConfig {
@@ -175,24 +174,8 @@ export async function computePortfolioTotalEUR(
   let totalCostEur = 0;
 
   for (const p of positions) {
-    const valueInNativeCurrency = p.totalValue;
-    const costInNativeCurrency = p.totalCost;
-
-    if (p.instrument.currency === "EUR") {
-      totalValueEur += valueInNativeCurrency;
-      totalCostEur += costInNativeCurrency;
-    } else {
-      const valueEur = await convertToEUR(
-        valueInNativeCurrency,
-        p.instrument.currency
-      );
-      const costEur = await convertToEUR(
-        costInNativeCurrency,
-        p.instrument.currency
-      );
-      totalValueEur += valueEur;
-      totalCostEur += costEur;
-    }
+    totalValueEur += p.totalValue;
+    totalCostEur += p.totalCost;
   }
 
   return { totalValueEur, totalCostEur };

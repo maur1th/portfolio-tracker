@@ -1,13 +1,56 @@
-import YahooFinanceAPI from "yahoo-finance2";
+import { and, desc, eq } from "drizzle-orm";
 
-interface ExchangeRateCache {
-  rate: number;
-  timestamp: number;
+import { db } from "@/db";
+import { fxRates } from "@/db/schema";
+
+const ECB_DAILY_RATES_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
+
+function parseEcbRates(xml: string): Map<string, number> {
+  const rates = new Map<string, number>();
+  const ratePattern = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g;
+
+  for (const match of xml.matchAll(ratePattern)) {
+    const [, currency, rate] = match;
+    const parsedRate = Number(rate);
+    if (Number.isFinite(parsedRate)) {
+      rates.set(currency, parsedRate);
+    }
+  }
+
+  return rates;
 }
 
-const yahooFinance = new YahooFinanceAPI({ suppressNotices: ["yahooSurvey"] });
-const rateCache = new Map<string, ExchangeRateCache>();
-const CACHE_TTL = 3600000; // 1 hour in milliseconds
+async function fetchExchangeRates(
+  baseCurrencies: string[],
+  quoteCurrency = "EUR"
+): Promise<Map<string, number>> {
+  if (quoteCurrency !== "EUR") {
+    throw new Error(`Unsupported quote currency ${quoteCurrency}. Only EUR is supported.`);
+  }
+
+  const response = await fetch(ECB_DAILY_RATES_URL);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ECB FX rates: ${response.status}`);
+  }
+
+  const xml = await response.text();
+  const ecbRates = parseEcbRates(xml);
+  const uniqueCurrencies = [...new Set(baseCurrencies)]
+    .filter((currency) => currency !== quoteCurrency);
+  const rateMap = new Map<string, number>();
+
+  for (const baseCurrency of uniqueCurrencies) {
+    const eurToBaseRate = ecbRates.get(baseCurrency);
+    if (!eurToBaseRate) {
+      console.error(`No ECB FX rate available for ${baseCurrency}->${quoteCurrency}`);
+      continue;
+    }
+
+    rateMap.set(baseCurrency, 1 / eurToBaseRate);
+  }
+
+  return rateMap;
+}
 
 export async function getExchangeRate(
   from: string,
@@ -15,36 +58,24 @@ export async function getExchangeRate(
 ): Promise<number> {
   if (from === to) return 1;
 
-  const cacheKey = `${from}${to}`;
-  const cached = rateCache.get(cacheKey);
-  
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.rate;
+  const result = await db
+    .select({ rate: fxRates.rate })
+    .from(fxRates)
+    .where(
+      and(
+        eq(fxRates.baseCurrency, from),
+        eq(fxRates.quoteCurrency, to)
+      )
+    )
+    .orderBy(desc(fxRates.fetchedAt))
+    .limit(1);
+
+  const rate = result[0]?.rate;
+  if (typeof rate !== "number" || !Number.isFinite(rate)) {
+    throw new Error(`No stored exchange rate found for ${from}->${to}. Refresh prices to update FX rates.`);
   }
 
-  try {
-    const ticker = `${from}${to}=X`;
-    const queryOptions = { modules: ["price"] } as { modules: Array<"price"> };
-    const result = await yahooFinance.quoteSummary(ticker, queryOptions) as any;
-    
-    if (!result || !result.price || !result.price.regularMarketPrice) {
-      throw new Error(`No exchange rate found for ${ticker}`);
-    }
-
-    const rate = result.price.regularMarketPrice as number;
-    rateCache.set(cacheKey, { rate, timestamp: Date.now() });
-    
-    return rate;
-  } catch (error) {
-    console.error(`Failed to fetch exchange rate ${from}->${to}:`, error);
-    
-    if (cached) {
-      console.warn("Using stale cached rate");
-      return cached.rate;
-    }
-    
-    throw error;
-  }
+  return rate;
 }
 
 export async function convertToEUR(
@@ -52,7 +83,35 @@ export async function convertToEUR(
   currency: string
 ): Promise<number> {
   if (currency === "EUR") return amount;
-  
+
   const rate = await getExchangeRate(currency, "EUR");
   return amount * rate;
+}
+
+export async function refreshExchangeRates(
+  currencies: string[],
+  quoteCurrency = "EUR"
+): Promise<number> {
+  const rateMap = await fetchExchangeRates(currencies, quoteCurrency);
+  const now = new Date().toISOString();
+
+  for (const [baseCurrency, rate] of rateMap.entries()) {
+    await db
+      .insert(fxRates)
+      .values({
+        baseCurrency,
+        quoteCurrency,
+        rate,
+        fetchedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: [fxRates.baseCurrency, fxRates.quoteCurrency],
+        set: {
+          rate,
+          fetchedAt: now,
+        },
+      });
+  }
+
+  return rateMap.size;
 }

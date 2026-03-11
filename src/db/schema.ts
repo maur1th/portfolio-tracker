@@ -86,6 +86,16 @@ export const pricesRelations = relations(prices, ({ one }) => ({
   }),
 }));
 
+export const fxRates = sqliteTable("fx_rates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  baseCurrency: text("base_currency").notNull(),
+  quoteCurrency: text("quote_currency").notNull(),
+  rate: real("rate").notNull(),
+  fetchedAt: text("fetched_at").notNull(),
+}, (table) => [
+  unique().on(table.baseCurrency, table.quoteCurrency),
+]);
+
 export const transactions = sqliteTable("transactions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   accountId: integer("account_id")

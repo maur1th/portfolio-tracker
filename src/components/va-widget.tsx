@@ -25,8 +25,8 @@ import { formatCurrency } from "@/lib/format";
 import {
   buildChartData,
   computeContributionProgress,
+  computeFundingProgress,
   computeMonthProgress,
-  computeProgressRatios,
   computeVariance,
 } from "@/lib/va-calculations";
 
@@ -70,24 +70,43 @@ interface VAWidgetProps {
 
 const statusTone = {
   ahead: {
-    badge: "text-emerald-200",
-    accent: "text-emerald-300",
-    bar: "bg-emerald-400",
-    track: "bg-emerald-400/16",
+    badge: "#79deb0",
+    accent: "#79deb0",
+    bar: "#79deb0",
+    track: "#0b4c49",
   },
   behind: {
-    badge: "text-amber-100",
-    accent: "text-amber-300",
-    bar: "bg-amber-400",
-    track: "bg-amber-400/14",
+    badge: "#f8d97b",
+    accent: "#f8d97b",
+    bar: "#f8d97b",
+    track: "#5b4114",
   },
   "on-track": {
-    badge: "text-sky-100",
-    accent: "text-sky-300",
-    bar: "bg-sky-400",
-    track: "bg-sky-400/14",
+    badge: "#66a5d1",
+    accent: "#66a5d1",
+    bar: "#66a5d1",
+    track: "#123d4f",
   },
 } as const;
+
+const vaChartColors = {
+  axis: "rgba(148, 163, 184, 0.85)",
+  axisLine: "rgba(71, 85, 105, 0.8)",
+  target: "#cbd5e1",
+  actual: "#7be0bb",
+  tooltipBg: "rgba(15, 23, 42, 0.96)",
+  tooltipBorder: "rgba(71, 85, 105, 0.8)",
+};
+
+const vaTheme = {
+  surfaceMuted: "#152130",
+  surfaceWarning: "#5b4114",
+  lineSoft: "#3e5368",
+  textSoft: "#cad6e5",
+  success: "#79deb0",
+  warning: "#f8d97b",
+  danger: "#eb84a0",
+};
 
 function SectionCard({
   icon: Icon,
@@ -99,9 +118,9 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[1rem] border border-white/8 bg-card p-4">
-      <div className="mb-5 flex items-center gap-2 text-white">
-        <Icon className="h-4 w-4 text-slate-300" />
+    <div className="rounded-[1rem] border border-border bg-card p-4">
+      <div className="mb-5 flex items-center gap-2 text-foreground">
+        <Icon className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-base font-semibold tracking-[-0.02em]">{title}</h3>
       </div>
       {children}
@@ -182,7 +201,7 @@ export function VAWidget({
   if (!config || isEditing) {
     return (
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-white/8 pb-4">
+        <CardHeader className="border-b border-border pb-4">
           <CardTitle className="text-2xl font-semibold tracking-[-0.04em]">Value Averaging</CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
@@ -254,20 +273,21 @@ export function VAWidget({
     calculation.currentValue,
     calculation.targetValue
   );
-  const { daysRemaining, daysProgress } = computeMonthProgress(new Date());
+  const { currentDay, daysInMonth, daysRemaining, daysProgress } = computeMonthProgress(new Date());
   const contributionProgress = computeContributionProgress(
     contributionsThisMonth,
     calculation.amountToInvest,
     daysProgress
   );
   const chartData = buildChartData(config, snapshotHistory);
-  const { targetRatio, currentRatio } = computeProgressRatios(
-    calculation.currentValue,
-    calculation.targetValue
+  const { progressRatio, remainingRatio } = computeFundingProgress(
+    config.monthlyIncrement,
+    calculation.amountToInvest
   );
   const nextMonthTarget = calculation.currentValue + config.monthlyIncrement;
-  const targetLeft = Math.max(6, Math.min(targetRatio, 94));
-  const currentLeft = Math.max(6, Math.min(currentRatio, 100));
+  const fundingLeft = Math.min(Math.max(progressRatio, 0), 100);
+  const fundingMarkerLeft = Math.min(Math.max(progressRatio, 2), 98);
+  const contributionMarkerLeft = Math.min(Math.max(contributionProgress.actualRatio, 2), 98);
   const headerTone = calculation.onTrack ? statusTone.ahead : statusTone.behind;
   const paceTone = statusTone[contributionProgress.pace];
   const monthPaceLabel =
@@ -279,10 +299,13 @@ export function VAWidget({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-white/8 py-4">
+      <CardHeader className="border-b border-border py-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-full border border-white/10 bg-white/5 p-2">
-            <Activity className="h-4 w-4 text-emerald-300" />
+          <div
+            className="rounded-full border p-2"
+            style={{ borderColor: vaTheme.lineSoft, backgroundColor: vaTheme.surfaceMuted }}
+          >
+            <Activity className="h-4 w-4" style={{ color: vaTheme.success }} />
           </div>
           <div>
             <CardTitle className="text-xl font-semibold tracking-[-0.03em]">Value Averaging</CardTitle>
@@ -292,59 +315,75 @@ export function VAWidget({
       </CardHeader>
 
       <CardContent className="space-y-5 p-4 md:p-5">
-        <div className={`relative overflow-hidden rounded-[1rem] border border-white/8 bg-card px-5 py-4 ${headerTone.track}`}>
-          <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] text-white">Statut:</span>
-              <span className={`text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] ${headerTone.badge}`}>
-                {calculation.onTrack ? "En avance sur l'objectif" : "Sous la cible"}
-              </span>
-            </div>
+        <div
+          className="relative overflow-hidden rounded-[1rem] border border-border bg-card px-5 py-4"
+          style={{ backgroundColor: headerTone.track }}
+        >
+          <div className="relative flex flex-col gap-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] text-foreground">Statut:</span>
+                <span
+                  className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em]"
+                  style={{ color: headerTone.badge }}
+                >
+                  {calculation.onTrack ? "En avance sur l'objectif" : "Sous la cible"}
+                </span>
+              </div>
 
-            <div className="relative min-h-16 flex-1 xl:mx-8">
-              <div className="absolute inset-x-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full bg-white/10" />
-              <div
-                className="absolute left-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full border-t-2 border-dashed border-white/35"
-                style={{ width: `${targetLeft}%` }}
-              />
-              <div
-                className={`absolute left-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full ${headerTone.bar}`}
-                style={{ width: `${currentLeft}%` }}
-              />
-              <div
-                className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                style={{ left: `${targetLeft}%` }}
-              >
-                <Flag className="mb-3 h-4 w-4 fill-emerald-300/20 text-emerald-300" />
-                <div className="h-4 w-4 rounded-full border border-emerald-300 bg-slate-950/90 shadow-[0_0_18px_rgba(110,231,183,0.35)]">
-                  <div className="m-auto mt-[3px] h-2 w-2 rounded-full bg-emerald-300" />
+              <div className="flex items-center gap-4 xl:min-w-0 xl:flex-1 xl:px-6">
+                <div className="relative min-w-0 flex-1">
+                  <div
+                    className="absolute inset-x-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full"
+                    style={{ backgroundColor: vaTheme.surfaceMuted }}
+                  />
+                  <div
+                    className="absolute left-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full"
+                    style={{ width: `${fundingLeft}%`, backgroundColor: headerTone.bar }}
+                  />
+                  <div
+                    className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+                    style={{ left: `${fundingMarkerLeft}%` }}
+                  >
+                    <Flag className="mb-3 h-4 w-4" style={{ color: vaTheme.success }} />
+                    <div
+                      className="h-4 w-4 rounded-full border bg-background"
+                      style={{ borderColor: vaTheme.success }}
+                    >
+                      <div
+                        className="m-auto mt-[3px] h-2 w-2 rounded-full"
+                        style={{ backgroundColor: vaTheme.success }}
+                      />
+                    </div>
+                  </div>
                 </div>
+                <span className="shrink-0 text-xs text-muted-foreground">{remainingRatio.toFixed(0)}% restant</span>
               </div>
-              <div
-                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${currentLeft}%` }}
-              >
-                <div className="h-3 w-3 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.45)]" />
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 xl:justify-end">
-              <div className="text-right">
-                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">À investir</div>
-                <div className={`text-[clamp(1.2rem,1.9vw,1.6rem)] font-semibold tracking-[-0.03em] ${calculation.amountToInvest === 0 ? "text-emerald-200" : "text-amber-200"}`}>
-                  {formatCurrency(calculation.amountToInvest)}
+              <div className="flex flex-wrap items-center justify-between gap-3 xl:justify-end">
+                <div className="text-right">
+                  <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">À investir</div>
+                  <div
+                    className="text-[clamp(1.2rem,1.9vw,1.6rem)] font-semibold tracking-[-0.03em]"
+                    style={{ color: calculation.amountToInvest === 0 ? vaTheme.success : vaTheme.warning }}
+                  >
+                    {formatCurrency(calculation.amountToInvest)}
+                  </div>
                 </div>
+                <Button variant="outline" size="sm" onClick={handleEdit} className="h-10 px-4">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Modifier
+                </Button>
               </div>
-              <Button variant="outline" size="sm" onClick={handleEdit} className="h-10 px-4">
-                <Pencil className="h-3.5 w-3.5" />
-                Modifier
-              </Button>
             </div>
           </div>
         </div>
 
         {!hasSnapshotThisMonth ? (
-          <Alert className="border-amber-400/20 bg-amber-400/8 text-amber-50 [&>svg]:text-amber-300">
+          <Alert
+            className="text-foreground"
+            style={{ borderColor: vaTheme.warning, backgroundColor: vaTheme.surfaceWarning }}
+          >
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Prix non actualisés depuis le {latestSnapshotDate || "jamais"}. Actualisez les prix pour un calcul précis.
@@ -353,25 +392,28 @@ export function VAWidget({
         ) : null}
 
         <div className="grid gap-4 xl:grid-cols-3">
-          <SectionCard icon={Target} title="Current Standings">
+          <SectionCard icon={Target} title="Situation actuelle">
             <div className="grid gap-5">
               <div className="grid gap-2 sm:grid-cols-2">
                 <div>
                   <div className="text-sm text-muted-foreground">Valeur actuelle</div>
-                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white">
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
                     {formatCurrency(calculation.currentValue)}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
                   <div className="text-sm text-muted-foreground">Trajectoire cible</div>
-                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-300">
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em]" style={{ color: vaTheme.textSoft }}>
                     {formatCurrency(calculation.targetValue)}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between border-t border-white/8 pt-4">
+              <div className="flex items-center justify-between border-t border-border pt-4">
                 <span className="text-sm text-muted-foreground">Variance</span>
-                <span className={`flex items-center gap-1 text-lg font-semibold tracking-[-0.03em] ${varianceIsPositive ? "text-emerald-300" : "text-rose-300"}`}>
+                <span
+                  className="flex items-center gap-1 text-lg font-semibold tracking-[-0.03em]"
+                  style={{ color: varianceIsPositive ? vaTheme.success : vaTheme.danger }}
+                >
                   {varianceIsPositive ? "+" : ""}
                   {formatCurrency(variance)}
                   {varianceIsPositive ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -380,44 +422,62 @@ export function VAWidget({
             </div>
           </SectionCard>
 
-          <SectionCard icon={Activity} title="Monthly Activity">
+          <SectionCard icon={Activity} title="Activité du mois">
             <div className="grid gap-5">
               <div className="grid gap-2 sm:grid-cols-2">
                 <div>
                   <div className="text-sm text-muted-foreground">Investi ce mois</div>
-                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white">
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
                     {formatCurrency(contributionsThisMonth)}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
                   <div className="text-sm text-muted-foreground">Reste à investir</div>
-                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-200">
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
                     {formatCurrency(calculation.amountToInvest)}
                   </div>
                 </div>
               </div>
-              <div className="space-y-3 border-t border-white/8 pt-4">
+              <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className={`${paceTone.accent} font-medium`}>{monthPaceLabel}</span>
+                  <span className="font-medium" style={{ color: paceTone.accent }}>{monthPaceLabel}</span>
                   <span className="text-muted-foreground">{daysRemaining} jours restants</span>
                 </div>
                 <div className="space-y-2">
-                  <div className="relative h-3 overflow-hidden rounded-full bg-white/8">
+                  <div
+                    className="relative h-5 rounded-full"
+                    style={{ backgroundColor: vaTheme.surfaceMuted }}
+                  >
                     <div
-                      className="absolute inset-y-0 left-0 rounded-full bg-white/10"
-                      style={{ width: `${contributionProgress.expectedRatio}%` }}
+                      className="absolute inset-y-1 left-0 rounded-full"
+                      style={{ width: `${contributionProgress.expectedRatio}%`, backgroundColor: vaTheme.lineSoft }}
                     />
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full ${paceTone.bar}`}
-                      style={{ width: `${contributionProgress.actualRatio}%` }}
+                      className="absolute inset-y-1 left-0 rounded-full"
+                      style={{ width: `${daysProgress}%`, backgroundColor: vaTheme.lineSoft }}
                     />
                     <div
-                      className="absolute inset-y-[-4px] w-px bg-white/70"
-                      style={{ left: `${Math.max(0, Math.min(contributionProgress.expectedRatio, 100))}%` }}
+                      className="absolute top-1/2 h-5 w-[2px] -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        left: `${contributionMarkerLeft}%`,
+                        backgroundColor: paceTone.bar,
+                      }}
+                    />
+                    <div
+                      className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                      style={{
+                        left: `${contributionMarkerLeft}%`,
+                        borderColor: paceTone.bar,
+                        backgroundColor: "#081528",
+                      }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
                     <span>Progression du mois</span>
+                    <span>{currentDay}/{daysInMonth} jours</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Investissement vs objectif mensuel</span>
                     <span>{contributionProgress.actualRatio.toFixed(0)}% investi / {contributionProgress.expectedRatio.toFixed(0)}% attendu</span>
                   </div>
                 </div>
@@ -425,30 +485,30 @@ export function VAWidget({
             </div>
           </SectionCard>
 
-          <SectionCard icon={TrendingUp} title="Next Month Preview">
+          <SectionCard icon={TrendingUp} title="Aperçu du mois suivant">
             <div className="grid gap-5">
               <div className="grid gap-2 sm:grid-cols-2">
                 <div>
                   <div className="text-sm text-muted-foreground">Total projeté</div>
-                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white">
+                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
                     {formatCurrency(nextMonthTarget)}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
                   <div className="text-sm text-muted-foreground">Stratégie</div>
-                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-200">Incrément standard</div>
+                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em]" style={{ color: vaTheme.textSoft }}>Incrément standard</div>
                 </div>
               </div>
-              <div className="flex items-center justify-between border-t border-white/8 pt-4">
+              <div className="flex items-center justify-between border-t border-border pt-4">
                 <div>
                   <div className="text-sm text-muted-foreground">Incrément mensuel</div>
-                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-white">
+                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground">
                     {formatCurrency(config.monthlyIncrement)}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">Mois écoulés</div>
-                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-200">{calculation.monthsElapsed}</div>
+                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em]" style={{ color: vaTheme.textSoft }}>{calculation.monthsElapsed}</div>
                 </div>
               </div>
             </div>
@@ -456,11 +516,11 @@ export function VAWidget({
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[1.05fr_1fr]">
-          <div className="rounded-[1rem] border border-white/8 bg-card p-4">
+          <div className="rounded-[1rem] border border-border bg-card p-4">
             <div className="mb-5 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-              <h3 className="text-base font-semibold tracking-[-0.02em] text-white">
-                {isNextMonth ? "Next Month Suggestions" : "Suggestions du mois"}
+              <CheckCircle2 className="h-4 w-4" style={{ color: vaTheme.success }} />
+              <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
+                {isNextMonth ? "Suggestions du mois suivant" : "Suggestions du mois"}
               </h3>
               <span className="text-sm text-muted-foreground">Basé sur {formatCurrency(suggestionsAmount || config.monthlyIncrement)}</span>
             </div>
@@ -474,11 +534,12 @@ export function VAWidget({
                   return (
                     <div
                       key={`${suggestion.ticker}-${suggestion.category}`}
-                      className="rounded-[0.95rem] border border-white/10 bg-background/30 p-4"
+                      className="rounded-[0.95rem] border p-4"
+                      style={{ borderColor: vaTheme.lineSoft, backgroundColor: vaTheme.surfaceMuted }}
                     >
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="line-clamp-2 text-sm font-semibold tracking-[-0.02em] text-white">
+                          <div className="line-clamp-2 text-sm font-semibold tracking-[-0.02em] text-foreground">
                             [ETF] {suggestion.instrumentName}
                           </div>
                         </div>
@@ -486,9 +547,9 @@ export function VAWidget({
                           {emoji}
                         </div>
                       </div>
-                      <div className="mb-4 text-sm text-slate-300">
-                        Allocation: {allocation.toFixed(0)}% <span className="mx-1 text-white/20">|</span>
-                        <span className="font-semibold text-white">{formatCurrency(suggestion.suggestedAmount)}</span>
+                      <div className="mb-4 text-sm" style={{ color: vaTheme.textSoft }}>
+                        Allocation : {allocation.toFixed(0)}% <span className="mx-1 text-muted-foreground">|</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(suggestion.suggestedAmount)}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">{suggestion.ticker} · {suggestion.accountName}</div>
                     </div>
@@ -496,24 +557,27 @@ export function VAWidget({
                 })}
               </div>
             ) : (
-              <div className="rounded-[1rem] border border-dashed border-white/10 bg-white/3 px-4 py-8 text-center text-sm text-muted-foreground">
+              <div
+                className="rounded-[1rem] border border-dashed px-4 py-8 text-center text-sm text-muted-foreground"
+                style={{ borderColor: vaTheme.lineSoft, backgroundColor: vaTheme.surfaceMuted }}
+              >
                 Aucune suggestion pour le moment.
               </div>
             )}
           </div>
 
-          <div className="rounded-[1rem] border border-white/8 bg-card p-4">
+          <div className="rounded-[1rem] border border-border bg-card p-4">
             <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <h3 className="text-base font-semibold tracking-[-0.02em] text-white">
-                Historical Performance <span className="text-sm text-muted-foreground">(6 derniers mois)</span>
+              <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
+                Historique de performance <span className="text-sm text-muted-foreground">(6 derniers mois)</span>
               </h3>
-              <div className="flex flex-wrap items-center gap-5 text-sm text-slate-300">
+              <div className="flex flex-wrap items-center gap-5 text-sm" style={{ color: vaTheme.textSoft }}>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 border-t-2 border-dashed border-white/50" />
+                  <div className="w-8 border-t-2 border-dashed" style={{ borderColor: vaTheme.textSoft }} />
                   <span>Trajectoire cible</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-[2px] w-8 bg-emerald-300" />
+                  <div className="h-[2px] w-8" style={{ backgroundColor: vaTheme.success }} />
                   <span>Valeur réelle</span>
                 </div>
               </div>
@@ -524,52 +588,61 @@ export function VAWidget({
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 8, right: 16, left: -16, bottom: 0 }}>
                     <XAxis
-                      dataKey="date"
-                      axisLine={{ stroke: "rgba(255,255,255,0.14)" }}
+                      dataKey="label"
+                      axisLine={{ stroke: vaChartColors.axisLine }}
                       tickLine={false}
-                      tick={{ fill: "rgba(203,213,225,0.86)", fontSize: 12 }}
+                      tick={{ fill: vaChartColors.axis, fontSize: 12 }}
                       dy={10}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "rgba(203,213,225,0.86)", fontSize: 12 }}
+                      tick={{ fill: vaChartColors.axis, fontSize: 12 }}
                       tickFormatter={(value) => `${(value / 1000).toFixed(0)}k €`}
                       orientation="right"
                       dx={10}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "rgba(15, 23, 42, 0.96)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "18px",
-                        boxShadow: "0 16px 40px rgba(2, 6, 23, 0.45)",
+                        backgroundColor: vaChartColors.tooltipBg,
+                        border: `1px solid ${vaChartColors.tooltipBorder}`,
+                        borderRadius: "12px",
+                        boxShadow: "0 16px 40px rgba(2, 6, 23, 0.35)",
                       }}
-                      itemStyle={{ color: "#f8fafc", fontSize: "13px", fontWeight: 600 }}
-                      labelStyle={{ color: "rgba(203,213,225,0.86)", fontSize: "12px", marginBottom: "4px" }}
+                      itemStyle={{ color: "hsl(var(--foreground))", fontSize: "13px", fontWeight: 600 }}
+                      labelStyle={{ color: "hsl(var(--muted-foreground))", fontSize: "12px", marginBottom: "4px" }}
+                      labelFormatter={(_, payload) => {
+                        const rawDate = payload?.[0]?.payload?.date;
+                        if (!rawDate) return "";
+                        return new Date(rawDate).toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        });
+                      }}
                       formatter={(value: number, name: string) => [
                         formatCurrency(value),
                         name === "target" ? "Objectif" : "Valeur réelle",
                       ]}
                     />
-                    <ReferenceLine y={calculation.targetValue} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 6" />
+                    <ReferenceLine y={calculation.targetValue} stroke={vaChartColors.axisLine} strokeDasharray="3 6" />
                     <Line
                       type="monotone"
                       dataKey="target"
-                      stroke="rgba(226,232,240,0.72)"
+                      stroke={vaChartColors.target}
                       strokeWidth={2}
                       strokeDasharray="6 6"
                       dot={false}
-                      activeDot={{ r: 4, fill: "#f8fafc", stroke: "rgba(15,23,42,0.96)", strokeWidth: 2 }}
+                      activeDot={{ r: 4, fill: "hsl(var(--foreground))", stroke: "hsl(var(--background))", strokeWidth: 2 }}
                       name="target"
                     />
                     <Line
                       type="monotone"
                       dataKey="actual"
-                      stroke="#7be0bb"
+                      stroke={vaChartColors.actual}
                       strokeWidth={3}
                       dot={false}
-                      activeDot={{ r: 5, fill: "#7be0bb", stroke: "rgba(15,23,42,0.96)", strokeWidth: 2 }}
+                      activeDot={{ r: 5, fill: vaChartColors.actual, stroke: "hsl(var(--background))", strokeWidth: 2 }}
                       name="actual"
                     />
                   </LineChart>

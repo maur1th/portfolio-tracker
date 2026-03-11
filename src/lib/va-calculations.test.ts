@@ -4,6 +4,7 @@ import {
   computeVariance,
   computeMonthProgress,
   computeProgressRatios,
+  computeFundingProgress,
   computeContributionProgress,
   buildChartData,
 } from "./va-calculations";
@@ -59,6 +60,7 @@ describe("computeMonthProgress", () => {
   it("computes progress for mid-month", () => {
     const date = new Date(2026, 2, 15); // March 15, 2026
     const result = computeMonthProgress(date);
+    expect(result.currentDay).toBe(15);
     expect(result.daysInMonth).toBe(31);
     expect(result.daysRemaining).toBe(16);
     expect(result.daysProgress).toBeCloseTo((15 / 31) * 100, 1);
@@ -67,6 +69,7 @@ describe("computeMonthProgress", () => {
   it("computes progress for first day of month", () => {
     const date = new Date(2026, 0, 1); // Jan 1
     const result = computeMonthProgress(date);
+    expect(result.currentDay).toBe(1);
     expect(result.daysRemaining).toBe(30);
     expect(result.daysProgress).toBeCloseTo((1 / 31) * 100, 1);
   });
@@ -99,6 +102,29 @@ describe("computeProgressRatios", () => {
   });
 });
 
+describe("computeFundingProgress", () => {
+  it("returns 100% progress when there is nothing left to invest", () => {
+    expect(computeFundingProgress(5000, 0)).toEqual({
+      progressRatio: 100,
+      remainingRatio: 0,
+    });
+  });
+
+  it("returns proportional progress based on remaining amount", () => {
+    expect(computeFundingProgress(5000, 2000)).toEqual({
+      progressRatio: 60,
+      remainingRatio: 40,
+    });
+  });
+
+  it("clamps when the amount to invest exceeds the monthly increment", () => {
+    expect(computeFundingProgress(5000, 7000)).toEqual({
+      progressRatio: 0,
+      remainingRatio: 100,
+    });
+  });
+});
+
 describe("computeContributionProgress", () => {
   it("computes the month plan and actual ratio", () => {
     const result = computeContributionProgress(400, 600, 50);
@@ -126,12 +152,12 @@ describe("buildChartData", () => {
   const config = { startDate: "2026-01-01", monthlyIncrement: 1000, initialValue: 10000 };
 
   it("returns at most 6 entries", () => {
-    const snapshots = Array.from({ length: 10 }, (_, i) => ({
+    const snapshots = Array.from({ length: 14 }, (_, i) => ({
       date: `2026-${String(i + 1).padStart(2, "0")}-15`,
       totalValueEur: 10000 + i * 1000,
     }));
     const result = buildChartData(config, snapshots);
-    expect(result).toHaveLength(6);
+    expect(result).toHaveLength(12);
   });
 
   it("includes target and actual values", () => {
@@ -148,5 +174,22 @@ describe("buildChartData", () => {
 
   it("returns empty array for no snapshots", () => {
     expect(buildChartData(config, [])).toEqual([]);
+  });
+
+  it("preserves multiple snapshots within the same month", () => {
+    const snapshots = [
+      { date: "2026-02-01", totalValueEur: 11800 },
+      { date: "2026-02-27", totalValueEur: 12500 },
+      { date: "2026-03-02", totalValueEur: 12750 },
+      { date: "2026-03-18", totalValueEur: 13200 },
+    ];
+
+    const result = buildChartData(config, snapshots);
+
+    expect(result).toHaveLength(4);
+    expect(result[0].actual).toBe(11800);
+    expect(result[1].actual).toBe(12500);
+    expect(result[2].actual).toBe(12750);
+    expect(result[3].actual).toBe(13200);
   });
 });
