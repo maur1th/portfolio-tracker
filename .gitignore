@@ -42,3 +42,4 @@ node_modules
 # editor / tools
 .vscode/
 .playwright-mcp/
+playwright-screenshot-*

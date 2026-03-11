@@ -63,7 +63,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
               <div className="text-sm text-muted-foreground">Gain/Perte</div>
               <div
                 className={`text-2xl font-bold ${
-                  gainLoss >= 0 ? "text-green-600" : "text-red-600"
+                  gainLoss >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {formatCurrency(gainLoss, account.currency)}
@@ -73,7 +73,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
               <div className="text-sm text-muted-foreground">Performance</div>
               <div
                 className={`text-2xl font-bold ${
-                  gainLossPercent >= 0 ? "text-green-600" : "text-red-600"
+                  gainLossPercent >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {formatPercent(gainLossPercent)}

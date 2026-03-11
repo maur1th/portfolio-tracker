@@ -194,14 +194,14 @@ export function PositionsTable({ positions }: PositionsTableProps) {
               </TableCell>
               <TableCell
                 className={`text-right font-semibold ${
-                  p.gainLoss >= 0 ? "text-green-600" : "text-red-600"
+                  p.gainLoss >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {formatCurrency(p.gainLoss)}
               </TableCell>
               <TableCell
                 className={`text-right font-semibold ${
-                  p.gainLossPercent >= 0 ? "text-green-600" : "text-red-600"
+                  p.gainLossPercent >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {formatPercent(p.gainLossPercent)}

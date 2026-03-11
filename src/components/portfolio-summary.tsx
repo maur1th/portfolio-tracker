@@ -36,7 +36,7 @@ export async function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <div className="text-sm text-muted-foreground">Gain/Perte</div>
             <div
               className={`text-2xl font-bold ${
-                gainLossEUR >= 0 ? "text-green-600" : "text-red-600"
+                gainLossEUR >= 0 ? "text-emerald-400" : "text-rose-400"
               }`}
             >
               {formatCurrency(gainLossEUR)}
@@ -46,7 +46,7 @@ export async function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <div className="text-sm text-muted-foreground">Performance</div>
             <div
               className={`text-2xl font-bold ${
-                gainLossPercent >= 0 ? "text-green-600" : "text-red-600"
+                gainLossPercent >= 0 ? "text-emerald-400" : "text-rose-400"
               }`}
             >
               {formatPercent(gainLossPercent)}
