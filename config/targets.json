@@ -1,0 +1,12 @@
+{
+  "geography": {
+    "US": 45,
+    "Europe": 25,
+    "Asie-Pacifique": 20
+  },
+  "marketCap": {
+    "Large Cap": 70,
+    "Small Cap": 15,
+    "Mid Cap": 15
+  }
+}

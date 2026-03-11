@@ -11,6 +11,8 @@ import { EtfWeightsRefreshButton } from "./etf-weights-refresh-button";
 interface ExposureChartsProps {
   exposure: ExposureBreakdown;
   lastCountryWeightsFetchDate: string | null;
+  geoTargets: Record<string, number>;
+  capTargets: Record<string, number>;
 }
 
 interface BreakdownItem {
@@ -20,7 +22,7 @@ interface BreakdownItem {
   color: string;
 }
 
-export function ExposureCharts({ exposure, lastCountryWeightsFetchDate }: ExposureChartsProps) {
+export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTargets, capTargets }: ExposureChartsProps) {
   const [showValues, setShowValues] = useState(true);
   const { geography, assetClass, marketCap, unmatchedCapEtfs, unmatchedGeoEtfs, totalValueEur } = exposure;
 
@@ -92,21 +94,13 @@ export function ExposureCharts({ exposure, lastCountryWeightsFetchDate }: Exposu
             title="Actions / Géographie"
             items={geographyItems}
             showValues={showValues}
-            targets={{
-              US: 45,
-              Europe: 25,
-              "Asie-Pacifique": 20,
-            }}
+            targets={geoTargets}
           />
           <ExposureSection
             title="Actions / Capitalisation"
             items={marketCapItems}
             showValues={showValues}
-            targets={{
-              "Large Cap": 70,
-              "Small Cap": 15,
-              "Mid Cap": 15,
-            }}
+            targets={capTargets}
           />
         </div>
         {(unmatchedCapEtfs.length > 0 || unmatchedGeoEtfs.length > 0) && (

@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertCircle, TrendingUp, Target, Calendar } from "lucide-react";
+import type { DcaSuggestion } from "@/lib/dca-suggestions";
 
 interface VAWidgetProps {
   config: {
@@ -33,9 +34,11 @@ interface VAWidgetProps {
     totalCostEur: number;
   }>;
   currentPortfolioValue: number;
+  suggestions: DcaSuggestion[];
+  suggestionsAmount: number;
+  isNextMonth: boolean;
 }
 
-// Compute target for a snapshot: previous month's last snapshot value + increment
 function computeTargetForSnapshot(
   config: { startDate: string; monthlyIncrement: number; initialValue: number },
   snapshotDate: string,
@@ -64,6 +67,9 @@ export function VAWidget({
   contributionsThisMonth,
   snapshotHistory,
   currentPortfolioValue,
+  suggestions,
+  suggestionsAmount,
+  isNextMonth,
 }: VAWidgetProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -72,7 +78,6 @@ export function VAWidget({
   const [initialValue, setInitialValue] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isStale = !latestSnapshotDate || latestSnapshotDate !== new Date().toISOString().split("T")[0];
   const currentMonth = new Date().toISOString().substring(0, 7);
   const hasSnapshotThisMonth = latestSnapshotDate?.startsWith(currentMonth);
 
@@ -135,8 +140,8 @@ export function VAWidget({
           {!config && !isEditing ? (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Définissez une trajectoire de valeur cible pour votre portefeuille. 
-                Chaque mois, investissez pour atteindre l'objectif : plus en cas de baisse, 
+                Définissez une trajectoire de valeur cible pour votre portefeuille.
+                Chaque mois, investissez pour atteindre l'objectif : plus en cas de baisse,
                 moins en cas de hausse.
               </p>
               <Button onClick={handleSetup}>Configurer Value Averaging</Button>
@@ -216,7 +221,7 @@ export function VAWidget({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Prix non actualisés depuis le {latestSnapshotDate || "jamais"}. 
+              Prix non actualisés depuis le {latestSnapshotDate || "jamais"}.
               Actualisez les prix pour un calcul précis.
             </AlertDescription>
           </Alert>
@@ -266,8 +271,47 @@ export function VAWidget({
           </div>
         )}
 
+        {suggestions.length > 0 && (
+          <>
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-semibold mb-3">
+                {isNextMonth
+                  ? "Suggestions DCA — mois prochain"
+                  : "Suggestions DCA"}
+              </h3>
+              {isNextMonth && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Objectif atteint ce mois. Projection basée sur l'incrément mensuel.
+                </p>
+              )}
+              <div className="space-y-2">
+                {suggestions.map((s) => (
+                  <div
+                    key={`${s.ticker}-${s.category}`}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <div>
+                      <span className="font-medium">{s.instrumentName}</span>
+                      <span className="text-muted-foreground ml-1">({s.ticker})</span>
+                      <span className="text-muted-foreground ml-2">· {s.accountName}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{s.category}</span>
+                    </div>
+                    <span className="font-medium tabular-nums">
+                      {formatCurrency(s.suggestedAmount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 pt-2 border-t flex items-center justify-between text-sm font-semibold">
+                <span>Total</span>
+                <span className="tabular-nums">{formatCurrency(suggestionsAmount)}</span>
+              </div>
+            </div>
+          </>
+        )}
+
         {snapshotHistory.length > 0 && (
-          <div className="space-y-2">
+          <div className="border-t pt-4 space-y-2">
             <div className="text-sm font-medium">Historique (6 derniers mois)</div>
             <div className="space-y-1 text-xs">
               {snapshotHistory.slice(-6).reverse().map((snapshot) => {
@@ -277,7 +321,7 @@ export function VAWidget({
                   snapshotHistory
                 );
                 const onTrack = snapshot.totalValueEur >= target;
-                
+
                 return (
                   <div
                     key={snapshot.date}
