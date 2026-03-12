@@ -1,8 +1,16 @@
 import { db } from "@/db";
-import { positions, instruments, accounts, brokers, prices } from "@/db/schema";
+import {
+  positions,
+  instruments,
+  accounts,
+  brokers,
+  prices,
+  positionSnapshots,
+} from "@/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { convertToEUR } from "./currencies";
 import type { PortfolioPosition } from "@/types";
+import { buildAccountSparklineHistory } from "./homepage-widgets";
 
 export async function getPortfolioPositions(): Promise<PortfolioPosition[]> {
   const result = await db
@@ -93,10 +101,24 @@ export interface AccountSummary {
   gainLoss: number;
   gainLossPercent: number;
   positionCount: number;
+  sparklineHistory: Array<{
+    date: string;
+    value: number;
+  }>;
 }
 
 export async function getAccountSummaries(): Promise<AccountSummary[]> {
   const portfolioPositions = await getPortfolioPositions();
+  const snapshotRows = await db
+    .select({
+      accountId: positionSnapshots.accountId,
+      date: positionSnapshots.snapshotDate,
+      totalValueEur: sql<number>`SUM(${positionSnapshots.valueEur})`,
+    })
+    .from(positionSnapshots)
+    .groupBy(positionSnapshots.accountId, positionSnapshots.snapshotDate)
+    .orderBy(positionSnapshots.accountId, positionSnapshots.snapshotDate);
+  const sparklineHistory = buildAccountSparklineHistory(snapshotRows);
   const accountMap = new Map<number, AccountSummary>();
 
   for (const p of portfolioPositions) {
@@ -111,6 +133,7 @@ export async function getAccountSummaries(): Promise<AccountSummary[]> {
         gainLoss: 0,
         gainLossPercent: 0,
         positionCount: 0,
+        sparklineHistory: sparklineHistory.get(p.account.id) ?? [],
       };
       accountMap.set(p.account.id, summary);
     }
@@ -124,6 +147,7 @@ export async function getAccountSummaries(): Promise<AccountSummary[]> {
     summary.gainLoss = summary.totalValue - summary.totalCost;
     summary.gainLossPercent =
       summary.totalCost > 0 ? summary.gainLoss / summary.totalCost : 0;
+    summary.sparklineHistory = summary.sparklineHistory.slice(-12);
   }
 
   return Array.from(accountMap.values());
