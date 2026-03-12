@@ -5,7 +5,7 @@ import { AccountCard } from "@/components/account-card";
 import { PositionsSection } from "@/components/positions-section";
 import { VAWidget } from "@/components/va-widget";
 import { ExposureCharts } from "@/components/exposure-charts";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getVAConfig,
   calculateVA,
@@ -102,30 +102,30 @@ export default async function HomePage() {
         capTargets={targets.marketCap}
       />
 
-      <Separator className="bg-white/10" />
-
-      <section className="space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
-            <BriefcaseBusiness className="h-4 w-4" />
+      <Card className="bg-dash-panel border-dash-border shadow-dash-panel overflow-hidden">
+        <CardHeader className="border-b border-white/8 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
+              <BriefcaseBusiness className="h-4 w-4" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-semibold tracking-[-0.03em]">
+                Mes Comptes <span className="text-white/35">({accountSummaries.length})</span>
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Vue synthétique de vos comptes et de leur progression récente
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
-              Mes Comptes <span className="text-white/35">({accountSummaries.length})</span>
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Vue synthétique de vos comptes et de leur progression récente
-            </p>
+        </CardHeader>
+        <CardContent className="pt-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {sortedAccountSummaries.map((summary) => (
+              <AccountCard key={summary.account.id} summary={summary} />
+            ))}
           </div>
-        </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {sortedAccountSummaries.map((summary) => (
-            <AccountCard key={summary.account.id} summary={summary} />
-          ))}
-        </div>
-      </section>
-
-      <Separator className="bg-white/10" />
+        </CardContent>
+      </Card>
 
       <PositionsSection
         positions={positions}

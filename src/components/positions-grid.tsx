@@ -13,7 +13,7 @@ export function PositionsGrid({
 }: PositionsGridProps) {
   if (positions.length === 0) {
     return (
-      <div className="dashboard-subtle-surface dashboard-text-muted rounded-[1.4rem] border border-white/10 px-6 py-12 text-center">
+      <div className="bg-dash-subtle text-dash-muted rounded-[1.4rem] border border-white/10 px-6 py-12 text-center">
         Aucune position trouvée
       </div>
     );
@@ -29,7 +29,7 @@ export function PositionsGrid({
         return (
           <article
             key={position.position.id}
-            className="dashboard-panel relative h-full overflow-hidden rounded-[1.45rem] border p-5"
+            className="bg-dash-panel border-dash-border shadow-dash-panel relative h-full overflow-hidden rounded-[1.45rem] border p-5"
           >
             <div className="relative flex h-full flex-col space-y-5">
               <div className="space-y-3">
@@ -38,13 +38,13 @@ export function PositionsGrid({
                     <h3 className="overflow-hidden text-[1.1rem] font-semibold leading-[1.15] tracking-[-0.03em] text-white [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
                       {position.instrument.name}
                     </h3>
-                    <p className="dashboard-text-soft mt-1 text-[1.05rem] tracking-[-0.03em]">
+                    <p className="text-dash-soft mt-1 text-[1.05rem] tracking-[-0.03em]">
                       {position.instrument.ticker}
                     </p>
                   </div>
                   <Badge
                     variant="outline"
-                    className="dashboard-chip shrink-0 px-3 py-1 text-sm"
+                    className="bg-dash-chip border-dash-chip-border text-dash-strong shrink-0 px-3 py-1 text-sm"
                   >
                     {position.broker.name.replace("Boursobank", "Bourso")}{" "}
                     {position.account.type}
@@ -54,19 +54,19 @@ export function PositionsGrid({
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <div className="dashboard-text-muted text-sm">Quantité</div>
+                  <div className="text-dash-muted text-sm">Quantité</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {formatQuantity(position.position.quantity)}
                   </div>
                 </div>
                 <div>
-                  <div className="dashboard-text-muted text-sm">PRU</div>
+                  <div className="text-dash-muted text-sm">PRU</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {formatCurrency(position.position.avgCostPerUnit)}
                   </div>
                 </div>
                 <div>
-                  <div className="dashboard-text-muted text-sm">Prix actuel</div>
+                  <div className="text-dash-muted text-sm">Prix actuel</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {position.currentPrice
                       ? formatCurrency(position.currentPrice)
@@ -77,7 +77,7 @@ export function PositionsGrid({
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
                 <div>
-                  <div className="dashboard-text-muted text-sm">Valeur totale</div>
+                  <div className="text-dash-muted text-sm">Valeur totale</div>
                   <div className="mt-1 text-xl font-semibold leading-none tracking-[-0.04em] text-white">
                     {formatCurrency(position.totalValue)}
                   </div>
@@ -93,13 +93,13 @@ export function PositionsGrid({
               </div>
 
               <div className="mt-auto space-y-2 pt-2">
-                <div className="dashboard-text-muted flex items-center justify-between text-sm">
+                <div className="text-dash-muted flex items-center justify-between text-sm">
                   <span>Poids dans le portefeuille</span>
                   <span>{formatPercent(allocation)}</span>
                 </div>
-                <div className="dashboard-track h-2.5 overflow-hidden rounded-full">
+                <div className="bg-dash-track h-2.5 overflow-hidden rounded-full">
                   <div
-                    className="dashboard-fill-neutral h-full rounded-full"
+                    className="bg-dash-fill h-full rounded-full"
                     style={{ width: `${Math.min(allocation * 100, 100)}%` }}
                   />
                 </div>
