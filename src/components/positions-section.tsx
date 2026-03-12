@@ -73,7 +73,7 @@ export function PositionsSection({
               Toutes les positions <span className="text-white/35">({positions.length})</span>
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Positions classées par valorisation
+              Détail de l&apos;ensemble des positions
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export function PositionsSection({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="weight">Valorisation</SelectItem>
-                  <SelectItem value="gain-loss">Gain / Perte</SelectItem>
+                  <SelectItem value="gain-loss">+/- value latente</SelectItem>
                   <SelectItem value="performance">Performance</SelectItem>
                   <SelectItem value="name">Nom</SelectItem>
                 </SelectContent>

@@ -48,19 +48,19 @@ export default async function AccountPage({ params }: AccountPageProps) {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <div className="text-sm text-muted-foreground">Valeur totale</div>
+              <div className="text-sm text-muted-foreground">Valorisation</div>
               <div className="text-2xl font-bold">
                 {formatCurrency(totalValue, account.currency)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Coût total</div>
+              <div className="text-sm text-muted-foreground">Montant investi</div>
               <div className="text-2xl font-bold">
                 {formatCurrency(totalCost, account.currency)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Gain/Perte</div>
+              <div className="text-sm text-muted-foreground">+/- value latente</div>
               <div
                 className={`text-2xl font-bold ${
                   gainLoss >= 0 ? "text-emerald-400" : "text-rose-400"

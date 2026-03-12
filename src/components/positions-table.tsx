@@ -136,25 +136,25 @@ export function PositionsTable({ positions }: PositionsTableProps) {
             </TableHead>
             <TableHead className="text-right">
               <div className="flex items-center justify-end gap-2">
-                PRU
+                Px. Revient
                 <SortButton column="avgCost" />
               </div>
             </TableHead>
             <TableHead className="text-right">
               <div className="flex items-center justify-end gap-2">
-                Prix actuel
+                Cours
                 <SortButton column="currentPrice" />
               </div>
             </TableHead>
             <TableHead className="text-right">
               <div className="flex items-center justify-end gap-2">
-                Valeur
+                Valorisation
                 <SortButton column="totalValue" />
               </div>
             </TableHead>
             <TableHead className="text-right">
               <div className="flex items-center justify-end gap-2">
-                Gain/Perte
+                +/- latente
                 <SortButton column="gainLoss" />
               </div>
             </TableHead>

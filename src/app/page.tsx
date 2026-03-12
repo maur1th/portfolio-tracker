@@ -113,7 +113,7 @@ export default async function HomePage() {
                 Mes Comptes <span className="text-white/35">({accountSummaries.length})</span>
               </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Vue synthétique de vos comptes et de leur progression récente
+                Vue synthétique de vos comptes et de leur évolution récente
               </p>
             </div>
           </div>
