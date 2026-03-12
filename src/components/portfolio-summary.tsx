@@ -28,7 +28,7 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
               Résumé du portefeuille
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Vue d&apos;ensemble de la valeur, de la performance et de l&apos;historique
+              Vue d&apos;ensemble de la valorisation, de la performance et de l&apos;historique
             </p>
           </div>
         </div>

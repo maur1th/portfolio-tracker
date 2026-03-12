@@ -94,7 +94,7 @@ export function PositionsGrid({
 
               <div className="mt-auto space-y-2 pt-2">
                 <div className="text-dash-muted flex items-center justify-between text-sm">
-                  <span>Poids dans le portefeuille</span>
+                  <span>Pondération</span>
                   <span>{formatPercent(allocation)}</span>
                 </div>
                 <div className="bg-dash-track h-2.5 overflow-hidden rounded-full">
