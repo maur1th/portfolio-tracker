@@ -1,6 +1,9 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPercent, formatQuantity } from "@/lib/format";
 import type { PortfolioPosition } from "@/types";
+import { usePrivacy } from "./privacy-provider";
 
 interface PositionsGridProps {
   positions: PortfolioPosition[];
@@ -11,6 +14,10 @@ export function PositionsGrid({
   positions,
   portfolioTotalValue,
 }: PositionsGridProps) {
+  const { privacyMode } = usePrivacy();
+  const pv = (value: number) => privacyMode ? "••••" : formatCurrency(value);
+  const pvq = (value: number) => privacyMode ? "••••" : formatQuantity(value);
+
   if (positions.length === 0) {
     return (
       <div className="bg-dash-subtle text-dash-muted rounded-[1.4rem] border border-white/10 px-6 py-12 text-center">
@@ -56,20 +63,20 @@ export function PositionsGrid({
                 <div>
                   <div className="text-dash-muted text-sm">Quantité</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
-                    {formatQuantity(position.position.quantity)}
+                    {pvq(position.position.quantity)}
                   </div>
                 </div>
                 <div>
                   <div className="text-dash-muted text-sm">Px. Revient</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
-                    {formatCurrency(position.position.avgCostPerUnit)}
+                    {pv(position.position.avgCostPerUnit)}
                   </div>
                 </div>
                 <div>
                   <div className="text-dash-muted text-sm">Cours</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {position.currentPrice
-                      ? formatCurrency(position.currentPrice)
+                      ? pv(position.currentPrice)
                       : "-"}
                   </div>
                 </div>
@@ -79,15 +86,14 @@ export function PositionsGrid({
                 <div>
                   <div className="text-dash-muted text-sm">Valorisation</div>
                   <div className="mt-1 text-xl font-semibold leading-none tracking-[-0.04em] text-white">
-                    {formatCurrency(position.totalValue)}
+                    {pv(position.totalValue)}
                   </div>
                   <div
                     className={`mt-2 text-[1.05rem] ${
                       isPositive ? "text-emerald-300" : "text-rose-300"
                     }`}
                   >
-                    {formatCurrency(position.gainLoss)} (
-                    {formatPercent(position.gainLossPercent)})
+                    {privacyMode ? "••••" : <>{formatCurrency(position.gainLoss)} ({formatPercent(position.gainLossPercent)})</>}
                   </div>
                 </div>
               </div>

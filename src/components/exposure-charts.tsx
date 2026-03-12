@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, PieChart } from "lucide-react";
+import { PieChart } from "lucide-react";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import type { ExposureBreakdown } from "@/lib/exposure";
 import { EtfWeightsRefreshButton } from "./etf-weights-refresh-button";
+import { usePrivacy } from "./privacy-provider";
 
 interface ExposureChartsProps {
   exposure: ExposureBreakdown;
@@ -23,7 +22,8 @@ interface BreakdownItem {
 }
 
 export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTargets, capTargets }: ExposureChartsProps) {
-  const [showValues, setShowValues] = useState(true);
+  const { privacyMode } = usePrivacy();
+  const showValues = !privacyMode;
   const { geography, assetClass, marketCap, unmatchedCapEtfs, unmatchedGeoEtfs, totalValueEur } = exposure;
 
   // Geography: exclude "Non classé" (commodities, money market) and compute % relative to equity total
@@ -88,14 +88,6 @@ export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTarge
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowValues((v) => !v)}
-            title={showValues ? "Masquer les montants" : "Afficher les montants"}
-          >
-            {showValues ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-          </Button>
           <EtfWeightsRefreshButton lastFetchedAt={lastCountryWeightsFetchDate} />
         </div>
       </CardHeader>

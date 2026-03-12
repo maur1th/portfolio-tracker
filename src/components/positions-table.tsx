@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPercent, formatQuantity } from "@/lib/format";
 import { ArrowUpDown } from "lucide-react";
 import type { PortfolioPosition } from "@/types";
+import { usePrivacy } from "./privacy-provider";
 
 interface PositionsTableProps {
   positions: PortfolioPosition[];
@@ -29,6 +30,9 @@ type SortKey =
   | "gainLossPercent";
 
 export function PositionsTable({ positions }: PositionsTableProps) {
+  const { privacyMode } = usePrivacy();
+  const pv = (value: number) => privacyMode ? "••••" : formatCurrency(value);
+  const pvq = (value: number) => privacyMode ? "••••" : formatQuantity(value);
   const [sortKey, setSortKey] = useState<SortKey>("totalValue");
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -179,25 +183,25 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                {formatQuantity(p.position.quantity)}
+                {pvq(p.position.quantity)}
               </TableCell>
               <TableCell className="text-right">
-                {formatCurrency(p.position.avgCostPerUnit)}
+                {pv(p.position.avgCostPerUnit)}
               </TableCell>
               <TableCell className="text-right">
                 {p.currentPrice
-                  ? formatCurrency(p.currentPrice)
+                  ? pv(p.currentPrice)
                   : "-"}
               </TableCell>
               <TableCell className="text-right">
-                {formatCurrency(p.totalValue)}
+                {pv(p.totalValue)}
               </TableCell>
               <TableCell
                 className={`text-right font-semibold ${
                   p.gainLoss >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
-                {formatCurrency(p.gainLoss)}
+                {pv(p.gainLoss)}
               </TableCell>
               <TableCell
                 className={`text-right font-semibold ${

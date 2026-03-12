@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import type { DcaSuggestion } from "@/lib/dca-suggestions";
 import type { Geography } from "@/lib/exposure";
 import { formatCurrency } from "@/lib/format";
+import { usePrivacy } from "./privacy-provider";
 import {
   computeContributionProgress,
   computeFundingProgress,
@@ -130,11 +131,14 @@ export function VAWidget({
   isNextMonth,
 }: VAWidgetProps) {
   const router = useRouter();
+  const { privacyMode } = usePrivacy();
   const [isEditing, setIsEditing] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [monthlyIncrement, setMonthlyIncrement] = useState("");
   const [initialValue, setInitialValue] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const pv = (value: number) => privacyMode ? "••••" : formatCurrency(value);
 
   const currentMonth = new Date().toISOString().substring(0, 7);
   const hasSnapshotThisMonth = latestSnapshotDate?.startsWith(currentMonth);
@@ -369,7 +373,7 @@ export function VAWidget({
                           : vaTheme.warning,
                     }}
                   >
-                    {formatCurrency(calculation.amountToInvest)}
+                    {pv(calculation.amountToInvest)}
                   </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleEdit} className="h-10 px-4">
@@ -400,7 +404,7 @@ export function VAWidget({
                 <div>
                   <div className="text-sm text-muted-foreground">Valeur actuelle</div>
                   <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
-                    {formatCurrency(calculation.currentValue)}
+                    {pv(calculation.currentValue)}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
@@ -409,7 +413,7 @@ export function VAWidget({
                     className="mt-1 text-xl font-semibold tracking-[-0.03em]"
                     style={{ color: vaTheme.textSoft }}
                   >
-                    {formatCurrency(calculation.targetValue)}
+                    {pv(calculation.targetValue)}
                   </div>
                 </div>
               </div>
@@ -419,8 +423,7 @@ export function VAWidget({
                   className="flex items-center gap-1 text-lg font-semibold tracking-[-0.03em]"
                   style={{ color: varianceIsPositive ? vaTheme.success : vaTheme.danger }}
                 >
-                  {varianceIsPositive ? "+" : ""}
-                  {formatCurrency(variance)}
+                  {privacyMode ? "••••" : <>{varianceIsPositive ? "+" : ""}{formatCurrency(variance)}</>}
                   {varianceIsPositive ? (
                     <CheckCircle2 className="h-4 w-4" />
                   ) : (
@@ -437,13 +440,13 @@ export function VAWidget({
                 <div>
                   <div className="text-sm text-muted-foreground">Investi ce mois</div>
                   <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
-                    {formatCurrency(contributionsThisMonth)}
+                    {pv(contributionsThisMonth)}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
                   <div className="text-sm text-muted-foreground">Reste à investir</div>
                   <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
-                    {formatCurrency(calculation.amountToInvest)}
+                    {pv(calculation.amountToInvest)}
                   </div>
                 </div>
               </div>
@@ -508,7 +511,7 @@ export function VAWidget({
                 <div>
                   <div className="text-sm text-muted-foreground">Total projeté</div>
                   <div className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
-                    {formatCurrency(nextMonthTarget)}
+                    {pv(nextMonthTarget)}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
@@ -525,7 +528,7 @@ export function VAWidget({
                 <div>
                   <div className="text-sm text-muted-foreground">Incrément mensuel</div>
                   <div className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground">
-                    {formatCurrency(config.monthlyIncrement)}
+                    {pv(config.monthlyIncrement)}
                   </div>
                 </div>
                 <div className="text-right">
@@ -550,7 +553,7 @@ export function VAWidget({
                 {isNextMonth ? "Suggestions du mois suivant" : "Suggestions du mois"}
               </h3>
               <span className="text-sm text-muted-foreground">
-                Basé sur {formatCurrency(suggestionsAmount || config.monthlyIncrement)}
+                Basé sur {pv(suggestionsAmount || config.monthlyIncrement)}
               </span>
             </div>
 
@@ -578,7 +581,7 @@ export function VAWidget({
                       </div>
                       <div className="mb-4 text-sm" style={{ color: vaTheme.textSoft }}>
                         Allocation : {allocation.toFixed(0)}% <span className="mx-1 text-muted-foreground">|</span>
-                        <span className="font-semibold text-foreground">{formatCurrency(suggestion.suggestedAmount)}</span>
+                        <span className="font-semibold text-foreground">{pv(suggestion.suggestedAmount)}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">{suggestion.ticker} · {suggestion.accountName}</div>
                     </div>
