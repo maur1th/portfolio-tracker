@@ -67,8 +67,7 @@
     --dashboard-fill-neutral: rgba(91, 116, 149, 0.95);
     --dashboard-text-strong: rgba(255, 255, 255, 0.88);
     --dashboard-text-soft: rgba(255, 255, 255, 0.72);
-    --dashboard-text-muted: rgba(255, 255, 255, 0.58);
-    --dashboard-text-dim: rgba(255, 255, 255, 0.55);
+    --dashboard-text-muted: rgba(255, 255, 255, 0.56);
     --dashboard-text-faint: rgba(255, 255, 255, 0.45);
     --dashboard-dot: rgba(255, 255, 255, 0.25);
   }
@@ -129,10 +128,6 @@
 
   .dashboard-text-muted {
     color: var(--dashboard-text-muted);
-  }
-
-  .dashboard-text-dim {
-    color: var(--dashboard-text-dim);
   }
 
   .dashboard-text-faint {

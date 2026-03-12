@@ -1,5 +1,3 @@
-"use client";
-
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPercent, formatQuantity } from "@/lib/format";
 import type { PortfolioPosition } from "@/types";
@@ -56,19 +54,19 @@ export function PositionsGrid({
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <div className="dashboard-text-dim text-sm">Quantité</div>
+                  <div className="dashboard-text-muted text-sm">Quantité</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {formatQuantity(position.position.quantity)}
                   </div>
                 </div>
                 <div>
-                  <div className="dashboard-text-dim text-sm">PRU</div>
+                  <div className="dashboard-text-muted text-sm">PRU</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {formatCurrency(position.position.avgCostPerUnit)}
                   </div>
                 </div>
                 <div>
-                  <div className="dashboard-text-dim text-sm">Prix actuel</div>
+                  <div className="dashboard-text-muted text-sm">Prix actuel</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {position.currentPrice
                       ? formatCurrency(position.currentPrice)
@@ -79,7 +77,7 @@ export function PositionsGrid({
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
                 <div>
-                  <div className="dashboard-text-dim text-sm">Valeur totale</div>
+                  <div className="dashboard-text-muted text-sm">Valeur totale</div>
                   <div className="mt-1 text-xl font-semibold leading-none tracking-[-0.04em] text-white">
                     {formatCurrency(position.totalValue)}
                   </div>
@@ -95,7 +93,7 @@ export function PositionsGrid({
               </div>
 
               <div className="mt-auto space-y-2 pt-2">
-                <div className="dashboard-text-dim flex items-center justify-between text-sm">
+                <div className="dashboard-text-muted flex items-center justify-between text-sm">
                   <span>Poids dans le portefeuille</span>
                   <span>{formatPercent(allocation)}</span>
                 </div>

@@ -39,13 +39,13 @@ export function AccountCard({ summary }: AccountCardProps) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="dashboard-text-dim text-sm">Valeur totale</div>
+                  <div className="dashboard-text-muted text-sm">Valeur totale</div>
                   <div className="mt-1 text-xl font-semibold leading-none tracking-[-0.04em] text-white">
                     {formatCurrency(summary.totalValue)}
                   </div>
                 </div>
                 <div>
-                  <div className="dashboard-text-dim text-sm">Gain/Perte</div>
+                  <div className="dashboard-text-muted text-sm">Gain/Perte</div>
                   <div
                     className={`mt-1 text-xl font-semibold leading-none tracking-[-0.04em] ${
                       isPositive ? "text-emerald-300" : "text-rose-300"

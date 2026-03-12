@@ -12,6 +12,8 @@ import { convertToEUR } from "./currencies";
 import type { PortfolioPosition } from "@/types";
 import { buildAccountSparklineHistory } from "./account-sparklines";
 
+const SPARKLINE_WINDOW_SIZE = 12;
+
 export async function getPortfolioPositions(): Promise<PortfolioPosition[]> {
   const result = await db
     .select({
@@ -117,7 +119,7 @@ export async function getAccountSummaries(): Promise<AccountSummary[]> {
     .select({
       accountId: positionSnapshots.accountId,
       date: positionSnapshots.snapshotDate,
-      totalValueEur: sql<number>`SUM(${positionSnapshots.valueEur})`,
+      totalValueEur: sql<number | null>`SUM(${positionSnapshots.valueEur})`,
     })
     .from(positionSnapshots)
     .groupBy(positionSnapshots.accountId, positionSnapshots.snapshotDate)
@@ -152,7 +154,7 @@ export async function getAccountSummaries(): Promise<AccountSummary[]> {
     summary.gainLossPercent =
       summary.totalCost > 0 ? summary.gainLoss / summary.totalCost : 0;
     summary.sparklineHistory =
-      (sparklineHistory.get(summary.account.id) ?? []).slice(-12);
+      (sparklineHistory.get(summary.account.id) ?? []).slice(-SPARKLINE_WINDOW_SIZE);
   }
 
   return Array.from(accountMap.values());
