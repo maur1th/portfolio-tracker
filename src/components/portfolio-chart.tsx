@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/chart";
 import { formatCurrency } from "@/lib/format";
 import type { SnapshotTotal } from "@/lib/value-averaging";
+import { usePrivacy } from "./privacy-provider";
 
 interface PortfolioChartProps {
   snapshotHistory: SnapshotTotal[];
@@ -36,6 +37,7 @@ function formatDateLabel(dateStr: string) {
 }
 
 export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) {
+  const { privacyMode } = usePrivacy();
   if (snapshotHistory.length === 0) return null;
   const chartData = snapshotHistory.slice(-12);
 
@@ -51,10 +53,12 @@ export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) 
         <YAxis
           domain={["dataMin", "dataMax"]}
           tickFormatter={(v) =>
-            new Intl.NumberFormat("fr-FR", {
-              notation: "compact",
-              maximumFractionDigits: 0,
-            }).format(v)
+            privacyMode
+              ? "••••"
+              : new Intl.NumberFormat("fr-FR", {
+                  notation: "compact",
+                  maximumFractionDigits: 0,
+                }).format(v)
           }
           tickLine={false}
           axisLine={false}
@@ -95,7 +99,7 @@ export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) 
                       className="ml-auto font-medium"
                       style={{ color: "var(--color-foreground)" }}
                     >
-                      {formatCurrency(entry.value as number)}
+                      {privacyMode ? "••••" : formatCurrency(entry.value as number)}
                     </span>
                   </div>
                 ))}

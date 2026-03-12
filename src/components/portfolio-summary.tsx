@@ -1,6 +1,7 @@
 import { Landmark } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PortfolioChartContent } from "@/components/portfolio-chart";
+import { PrivateValue } from "@/components/private-value";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { computePortfolioTotalEUR, type SnapshotTotal } from "@/lib/value-averaging";
 import type { PortfolioPosition } from "@/types";
@@ -38,13 +39,13 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
           <div>
             <div className="text-sm text-muted-foreground">Valorisation</div>
             <div className="text-xl font-semibold tracking-[-0.03em]">
-              {formatCurrency(totalValueEur)}
+              <PrivateValue>{formatCurrency(totalValueEur)}</PrivateValue>
             </div>
           </div>
           <div>
             <div className="text-sm text-muted-foreground">Montant investi</div>
             <div className="text-xl font-semibold tracking-[-0.03em]">
-              {formatCurrency(totalCostEur)}
+              <PrivateValue>{formatCurrency(totalCostEur)}</PrivateValue>
             </div>
           </div>
           <div>
@@ -54,7 +55,7 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
                 gainLossEUR >= 0 ? "text-emerald-300" : "text-rose-400"
               }`}
             >
-              {formatCurrency(gainLossEUR)}
+              <PrivateValue>{formatCurrency(gainLossEUR)}</PrivateValue>
             </div>
           </div>
           <div>

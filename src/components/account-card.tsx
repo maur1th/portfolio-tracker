@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { AccountCardSparkline } from "@/components/account-card-sparkline";
+import { PrivateValue } from "@/components/private-value";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import type { AccountSummary } from "@/lib/portfolio";
@@ -27,7 +28,7 @@ export function AccountCard({ summary }: AccountCardProps) {
                 <div>
                   <div className="text-dash-muted text-sm">Valorisation</div>
                   <div className="mt-1 text-xl font-semibold leading-none tracking-[-0.04em] text-white">
-                    {formatCurrency(summary.totalValue)}
+                    <PrivateValue>{formatCurrency(summary.totalValue)}</PrivateValue>
                   </div>
                 </div>
                 <div>
@@ -37,7 +38,7 @@ export function AccountCard({ summary }: AccountCardProps) {
                       isPositive ? "text-emerald-300" : "text-rose-300"
                     }`}
                   >
-                    {formatCurrency(summary.gainLoss)}
+                    <PrivateValue>{formatCurrency(summary.gainLoss)}</PrivateValue>
                   </div>
                   <div
                     className={`mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${
