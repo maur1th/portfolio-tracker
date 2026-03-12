@@ -55,6 +55,22 @@
     --color-chart-actual: #7be0bb;
     --color-chart-tooltip-bg: rgba(15, 23, 42, 0.96);
     --color-chart-tooltip-border: rgba(71, 85, 105, 0.8);
+    --color-dash-panel: rgba(8, 18, 42, 0.92);
+    --color-dash-border: rgba(255, 255, 255, 0.12);
+    --color-dash-inner-border: rgba(255, 255, 255, 0.1);
+    --color-dash-subtle: rgba(255, 255, 255, 0.02);
+    --color-dash-chip: rgba(255, 255, 255, 0.06);
+    --color-dash-chip-border: rgba(255, 255, 255, 0.16);
+    --color-dash-track: rgba(255, 255, 255, 0.08);
+    --color-dash-fill: rgba(91, 116, 149, 0.95);
+    --color-dash-strong: rgba(255, 255, 255, 0.88);
+    --color-dash-soft: rgba(255, 255, 255, 0.72);
+    --color-dash-muted: rgba(255, 255, 255, 0.56);
+    --color-dash-faint: rgba(255, 255, 255, 0.45);
+    --color-dash-dot: rgba(255, 255, 255, 0.25);
+    --shadow-dash-panel: 0 26px 70px rgba(2, 6, 23, 0.42);
+    --shadow-dash-panel-lg: 0 30px 80px rgba(2, 6, 23, 0.48);
+    --shadow-dash-action: 0 20px 40px rgba(2, 6, 23, 0.28);
   }
 
   body {

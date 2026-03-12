@@ -1,3 +1,4 @@
+import { Landmark } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PortfolioChartContent } from "@/components/portfolio-chart";
 import { formatCurrency, formatPercent } from "@/lib/format";
@@ -16,9 +17,21 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
   const gainLossPercent = totalCostEur > 0 ? gainLossEUR / totalCostEur : 0;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="bg-dash-panel border-dash-border shadow-dash-panel overflow-hidden">
       <CardHeader className="border-b border-white/8 pb-4">
-        <CardTitle className="text-2xl font-semibold tracking-[-0.04em]">Résumé du portefeuille</CardTitle>
+        <div className="flex items-center gap-3">
+          <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
+            <Landmark className="h-4 w-4 text-emerald-300" />
+          </div>
+          <div>
+            <CardTitle className="text-xl font-semibold tracking-[-0.03em]">
+              Résumé du portefeuille
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Vue d&apos;ensemble de la valeur, de la performance et de l&apos;historique
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="pt-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

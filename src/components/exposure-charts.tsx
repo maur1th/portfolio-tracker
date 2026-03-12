@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, PieChart } from "lucide-react";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import type { ExposureBreakdown } from "@/lib/exposure";
 import { EtfWeightsRefreshButton } from "./etf-weights-refresh-button";
@@ -72,9 +72,21 @@ export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTarge
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Exposition du portefeuille</CardTitle>
+    <Card className="bg-dash-panel border-dash-border shadow-dash-panel overflow-hidden">
+      <CardHeader className="flex flex-col gap-4 border-b border-white/8 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
+            <PieChart className="h-4 w-4 text-emerald-300" />
+          </div>
+          <div>
+            <CardTitle className="text-xl font-semibold tracking-[-0.03em] text-white">
+              Exposition du portefeuille
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Répartition par classe d&apos;actif, géographie et capitalisation
+            </p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -87,8 +99,8 @@ export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTarge
           <EtfWeightsRefreshButton lastFetchedAt={lastCountryWeightsFetchDate} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <CardContent className="pt-6">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
           <ExposureSection title="Classe d'actif" items={assetClassItems} showValues={showValues} />
           <ExposureSection
             title="Actions / Géographie"
@@ -104,7 +116,7 @@ export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTarge
           />
         </div>
         {(unmatchedCapEtfs.length > 0 || unmatchedGeoEtfs.length > 0) && (
-          <div className="mt-4 rounded-md border border-amber-500 bg-amber-500/20 px-4 py-3 text-sm text-amber-200">
+          <div className="mt-5 rounded-[1rem] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             {unmatchedGeoEtfs.length > 0 && (
               <div>
                 <p className="font-medium mb-1">Géographie non classée :</p>
@@ -141,31 +153,31 @@ interface ExposureSectionProps {
 
 function ExposureSection({ title, items, targets, showValues }: ExposureSectionProps) {
   return (
-    <div>
-      <h3 className="font-semibold text-sm text-muted-foreground mb-3">
+    <div className="bg-dash-subtle rounded-[1.2rem] border border-white/10 p-5">
+      <h3 className="mb-5 text-lg font-semibold tracking-[-0.03em] text-white">
         {title}
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-5">
         {items.map((item) => {
           const target = targets?.[item.label];
           return (
             <div key={item.label}>
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="font-medium">
+              <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                <span className="font-medium text-white">
                   {item.label}
                   {target != null && (
-                    <span className="text-muted-foreground font-normal text-xs ml-1">
+                    <span className="text-dash-faint ml-1 text-xs font-normal">
                       (cible {target} %)
                     </span>
                   )}
                 </span>
-                <span className="text-muted-foreground">
+                <span className="text-dash-soft">
                   {formatPercent(item.percentage / 100)}
                 </span>
               </div>
-              <div className="relative w-full bg-secondary rounded-full h-2 mb-1">
+              <div className="bg-dash-track relative mb-2 h-3 w-full rounded-full">
                 <div
-                  className="h-2 rounded-full transition-all"
+                  className="h-3 rounded-full transition-all"
                   style={{
                     width: `${Math.min(100, item.percentage)}%`,
                     backgroundColor: item.color,
@@ -173,14 +185,14 @@ function ExposureSection({ title, items, targets, showValues }: ExposureSectionP
                 />
                 {target != null && (
                   <div
-                    className="absolute top-[-3px] w-0.5 h-[14px] bg-white/70 rounded-full"
+                    className="absolute top-[-2px] h-4 w-0.5 rounded-full bg-white/70"
                     style={{ left: `${Math.min(100, target)}%` }}
                     title={`Cible : ${target} %`}
                   />
                 )}
               </div>
               {showValues && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-dash-soft text-sm">
                   {formatCurrency(item.value)}
                 </div>
               )}

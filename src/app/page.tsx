@@ -1,11 +1,11 @@
+import { BriefcaseBusiness } from "lucide-react";
 import { getPortfolioPositions, getAccountSummaries } from "@/lib/portfolio";
 import { PortfolioSummary } from "@/components/portfolio-summary";
 import { AccountCard } from "@/components/account-card";
-import { PositionsTable } from "@/components/positions-table";
+import { PositionsSection } from "@/components/positions-section";
 import { VAWidget } from "@/components/va-widget";
 import { ExposureCharts } from "@/components/exposure-charts";
-import { Separator } from "@/components/ui/separator";
-import { PriceRefreshButton } from "@/components/price-refresh-button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getVAConfig,
   calculateVA,
@@ -21,6 +21,9 @@ import { computeDcaSuggestions } from "@/lib/dca-suggestions";
 export default async function HomePage() {
   const positions = await getPortfolioPositions();
   const accountSummaries = await getAccountSummaries();
+  const sortedAccountSummaries = [...accountSummaries].sort(
+    (a, b) => b.totalValue - a.totalValue
+  );
 
   const vaConfig = await getVAConfig();
   const snapshotHistory = await getSnapshotTotals();
@@ -99,26 +102,35 @@ export default async function HomePage() {
         capTargets={targets.marketCap}
       />
 
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Comptes</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {accountSummaries.map((summary) => (
-            <AccountCard key={summary.account.id} summary={summary} />
-          ))}
-        </div>
-      </div>
+      <Card className="bg-dash-panel border-dash-border shadow-dash-panel overflow-hidden">
+        <CardHeader className="border-b border-white/8 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
+              <BriefcaseBusiness className="h-4 w-4" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-semibold tracking-[-0.03em]">
+                Mes Comptes <span className="text-white/35">({accountSummaries.length})</span>
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Vue synthétique de vos comptes et de leur progression récente
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {sortedAccountSummaries.map((summary) => (
+              <AccountCard key={summary.account.id} summary={summary} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      <Separator />
-
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">
-            Toutes les positions ({positions.length})
-          </h2>
-          <PriceRefreshButton />
-        </div>
-        <PositionsTable positions={positions} />
-      </div>
+      <PositionsSection
+        positions={positions}
+        portfolioTotalValue={totalValueEur}
+      />
     </div>
   );
 }

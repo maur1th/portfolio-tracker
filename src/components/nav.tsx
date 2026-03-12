@@ -13,7 +13,7 @@ export function Nav() {
           </Link>
           <div className="flex gap-2">
             <PriceRefreshButton />
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="bg-white/5 border-dash-border text-foreground shadow-dash-action h-12 px-5 text-base hover:bg-white/8">
               <Link href="/import">
                 <FileUp />
                 Importer CSV
