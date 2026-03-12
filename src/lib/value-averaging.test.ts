@@ -8,8 +8,9 @@ vi.mock("@/db/schema", () => ({
   instruments: {},
 }));
 
-import { calculateVA, computeTargetForDate } from "./value-averaging";
+import { calculateVA, computePortfolioTotalEUR, computeTargetForDate } from "./value-averaging";
 import type { VAConfig, SnapshotTotal } from "./value-averaging";
+import type { PortfolioPosition } from "@/types";
 
 const baseConfig: VAConfig = {
   id: 1,
@@ -119,5 +120,27 @@ describe("computeTargetForDate", () => {
     const target = computeTargetForDate(baseConfig, "2024-02-15", snapshots);
     // Last Jan snapshot (51200) + 1000 = 52200
     expect(target).toBe(52200);
+  });
+});
+
+describe("computePortfolioTotalEUR", () => {
+  it("sums already-converted EUR totals without reconverting currencies", async () => {
+    const positions = [
+      {
+        totalValue: 100,
+        totalCost: 80,
+        instrument: { currency: "EUR" },
+      },
+      {
+        totalValue: 50,
+        totalCost: 40,
+        instrument: { currency: "GBP" },
+      },
+    ] as PortfolioPosition[];
+
+    await expect(computePortfolioTotalEUR(positions)).resolves.toEqual({
+      totalValueEur: 150,
+      totalCostEur: 120,
+    });
   });
 });

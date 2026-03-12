@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { instruments, positions, transactions, prices } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { lookupInstrument, searchBySymbolAndName, fetchPrices } from "@/lib/yahoo-finance";
+import { refreshExchangeRates } from "@/lib/currencies";
 import { recordSnapshots } from "@/lib/snapshots";
 import { computeWeightedPositions } from "@/lib/positions";
 import type { ParsedTransaction } from "@/lib/csv-parsers/types";
@@ -101,6 +102,9 @@ export async function POST(request: NextRequest) {
         .select()
         .from(instruments)
         .where(inArray(instruments.id, instrumentIds));
+
+      const currencies = allInstruments.map((instrument) => instrument.currency);
+      await refreshExchangeRates(currencies);
 
       const tickers = allInstruments.map((i) => i.ticker);
       const priceMap = await fetchPrices(tickers);

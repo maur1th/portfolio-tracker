@@ -6,13 +6,18 @@ import {
   ChartTooltip,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format";
 import type { SnapshotTotal } from "@/lib/value-averaging";
 
 interface PortfolioChartProps {
   snapshotHistory: SnapshotTotal[];
 }
+
+const portfolioChartTooltip = {
+  backgroundColor: "var(--color-chart-tooltip-bg)",
+  border: "1px solid var(--color-chart-tooltip-border)",
+  color: "var(--color-foreground)",
+};
 
 const chartConfig = {
   totalValueEur: {
@@ -27,94 +32,97 @@ const chartConfig = {
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
-export function PortfolioChart({ snapshotHistory }: PortfolioChartProps) {
+export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) {
   if (snapshotHistory.length === 0) return null;
+  const chartData = snapshotHistory.slice(-12);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Valorisation du portefeuille</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <LineChart data={snapshotHistory} accessibilityLayer>
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDateLabel}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              domain={["dataMin", "dataMax"]}
-              tickFormatter={(v) =>
-                new Intl.NumberFormat("fr-FR", {
-                  notation: "compact",
-                  maximumFractionDigits: 0,
-                }).format(v)
-              }
-              tickLine={false}
-              axisLine={false}
-              width={60}
-            />
-            <ChartTooltip
-              content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null;
-                return (
-                  <div className="rounded-lg border bg-background p-2 shadow-sm">
-                    <div className="text-sm font-medium mb-1">
-                      {new Date(label).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </div>
-                    {payload.map((entry) => (
-                      <div
-                        key={entry.dataKey}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        <div
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="text-muted-foreground">
-                          {chartConfig[entry.dataKey as keyof typeof chartConfig]
-                            ?.label ?? entry.dataKey}
-                        </span>
-                        <span className="font-medium ml-auto">
-                          {formatCurrency(entry.value as number)}
-                        </span>
-                      </div>
-                    ))}
+    <ChartContainer config={chartConfig} className="h-[300px] w-full">
+      <LineChart data={chartData} accessibilityLayer>
+        <XAxis
+          dataKey="date"
+          tickFormatter={formatDateLabel}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          domain={["dataMin", "dataMax"]}
+          tickFormatter={(v) =>
+            new Intl.NumberFormat("fr-FR", {
+              notation: "compact",
+              maximumFractionDigits: 0,
+            }).format(v)
+          }
+          tickLine={false}
+          axisLine={false}
+          width={60}
+        />
+        <ChartTooltip
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null;
+            return (
+              <div
+                className="rounded-xl p-2 shadow-sm"
+                style={portfolioChartTooltip}
+              >
+                <div
+                  className="mb-1 text-sm font-medium"
+                  style={{ color: "var(--color-foreground)" }}
+                >
+                  {new Date(label).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </div>
+                {payload.map((entry) => (
+                  <div
+                    key={entry.dataKey}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <div
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span style={{ color: "var(--color-muted-foreground)" }}>
+                      {chartConfig[entry.dataKey as keyof typeof chartConfig]
+                        ?.label ?? entry.dataKey}
+                    </span>
+                    <span
+                      className="ml-auto font-medium"
+                      style={{ color: "var(--color-foreground)" }}
+                    >
+                      {formatCurrency(entry.value as number)}
+                    </span>
                   </div>
-                );
-              }}
-            />
-            <Legend
-              formatter={(value) =>
-                chartConfig[value as keyof typeof chartConfig]?.label ?? value
-              }
-            />
-            <Line
-              type="monotone"
-              dataKey="totalValueEur"
-              stroke="var(--color-totalValueEur)"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="totalCostEur"
-              stroke="var(--color-totalCostEur)"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+                ))}
+              </div>
+            );
+          }}
+        />
+        <Legend
+          formatter={(value) =>
+            chartConfig[value as keyof typeof chartConfig]?.label ?? value
+          }
+        />
+        <Line
+          type="monotone"
+          dataKey="totalValueEur"
+          stroke="var(--color-totalValueEur)"
+          strokeWidth={2}
+          dot={false}
+        />
+        <Line
+          type="monotone"
+          dataKey="totalCostEur"
+          stroke="var(--color-totalCostEur)"
+          strokeWidth={2}
+          dot={false}
+        />
+      </LineChart>
+    </ChartContainer>
   );
 }
