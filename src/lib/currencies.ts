@@ -70,12 +70,33 @@ export async function getExchangeRate(
     .orderBy(desc(fxRates.fetchedAt))
     .limit(1);
 
-  const rate = result[0]?.rate;
-  if (typeof rate !== "number" || !Number.isFinite(rate)) {
-    throw new Error(`No stored exchange rate found for ${from}->${to}. Refresh prices to update FX rates.`);
+  const storedRate = result[0]?.rate;
+  if (typeof storedRate === "number" && Number.isFinite(storedRate)) {
+    return storedRate;
   }
 
-  return rate;
+  // Lazy fetch: no stored rate yet, fetch from ECB and persist
+  const rateMap = await fetchExchangeRates([from], to);
+  const fetchedRate = rateMap.get(from);
+  if (typeof fetchedRate !== "number" || !Number.isFinite(fetchedRate)) {
+    throw new Error(`No exchange rate available for ${from}->${to}`);
+  }
+
+  const now = new Date().toISOString();
+  await db
+    .insert(fxRates)
+    .values({
+      baseCurrency: from,
+      quoteCurrency: to,
+      rate: fetchedRate,
+      fetchedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [fxRates.baseCurrency, fxRates.quoteCurrency],
+      set: { rate: fetchedRate, fetchedAt: now },
+    });
+
+  return fetchedRate;
 }
 
 export async function convertToEUR(

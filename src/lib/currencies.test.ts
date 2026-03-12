@@ -67,9 +67,35 @@ describe("currencies", () => {
     await expect(getExchangeRate("GBP", "EUR")).resolves.toBe(1.17);
   });
 
-  it("throws when no stored exchange rate exists", async () => {
-    await expect(getExchangeRate("GBP", "EUR")).rejects.toThrow(
-      "No stored exchange rate found for GBP->EUR. Refresh prices to update FX rates."
+  it("lazy-fetches from ECB when no stored rate exists", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(`
+        <Cube>
+          <Cube time="2026-03-12">
+            <Cube currency="GBP" rate="0.84746" />
+          </Cube>
+        </Cube>
+      `),
+    } as unknown as Response);
+
+    const rate = await getExchangeRate("GBP", "EUR");
+    expect(rate).toBeCloseTo(1 / 0.84746);
+    expect(insertValues).toHaveLength(1);
+    expect(insertValues[0]).toMatchObject({
+      baseCurrency: "GBP",
+      quoteCurrency: "EUR",
+    });
+  });
+
+  it("throws when lazy fetch also has no rate", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(`<Cube></Cube>`),
+    } as unknown as Response);
+
+    await expect(getExchangeRate("XYZ", "EUR")).rejects.toThrow(
+      "No exchange rate available for XYZ->EUR"
     );
   });
 
