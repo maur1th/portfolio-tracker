@@ -1,12 +1,11 @@
-import { BriefcaseBusiness, ChartColumnBig } from "lucide-react";
+import { BriefcaseBusiness } from "lucide-react";
 import { getPortfolioPositions, getAccountSummaries } from "@/lib/portfolio";
 import { PortfolioSummary } from "@/components/portfolio-summary";
 import { AccountCard } from "@/components/account-card";
-import { PositionsGrid } from "@/components/positions-grid";
+import { PositionsSection } from "@/components/positions-section";
 import { VAWidget } from "@/components/va-widget";
 import { ExposureCharts } from "@/components/exposure-charts";
 import { Separator } from "@/components/ui/separator";
-import { PriceRefreshButton } from "@/components/price-refresh-button";
 import {
   getVAConfig,
   calculateVA,
@@ -81,74 +80,57 @@ export default async function HomePage() {
       : [];
 
   return (
-    <div className="relative">
-      <div className="container relative mx-auto space-y-8 px-4 py-8">
-        <PortfolioSummary positions={positions} snapshotHistory={snapshotHistory} />
+    <div className="container mx-auto space-y-8 px-4 py-8">
+      <PortfolioSummary positions={positions} snapshotHistory={snapshotHistory} />
 
-        <VAWidget
-          config={vaConfig}
-          calculation={vaCalculation}
-          latestSnapshotDate={latestSnapshotDate}
-          contributionsThisMonth={contributionsThisMonth}
-          snapshotHistory={snapshotHistory}
-          currentPortfolioValue={totalValueEur}
-          suggestions={suggestions}
-          suggestionsAmount={suggestionsAmount}
-          isNextMonth={isNextMonth ?? false}
-        />
+      <VAWidget
+        config={vaConfig}
+        calculation={vaCalculation}
+        latestSnapshotDate={latestSnapshotDate}
+        contributionsThisMonth={contributionsThisMonth}
+        snapshotHistory={snapshotHistory}
+        currentPortfolioValue={totalValueEur}
+        suggestions={suggestions}
+        suggestionsAmount={suggestionsAmount}
+        isNextMonth={isNextMonth ?? false}
+      />
 
-        <ExposureCharts
-          exposure={exposure}
-          lastCountryWeightsFetchDate={lastCountryWeightsFetchDate}
-          geoTargets={targets.geography}
-          capTargets={targets.marketCap}
-        />
+      <ExposureCharts
+        exposure={exposure}
+        lastCountryWeightsFetchDate={lastCountryWeightsFetchDate}
+        geoTargets={targets.geography}
+        capTargets={targets.marketCap}
+      />
 
-        <Separator className="bg-white/10" />
+      <Separator className="bg-white/10" />
 
-        <section className="space-y-5">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
-              <BriefcaseBusiness className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
-                Mes Comptes <span className="text-white/35">({accountSummaries.length})</span>
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Vue synthétique de vos comptes et de leur progression récente
-              </p>
-            </div>
+      <section className="space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
+            <BriefcaseBusiness className="h-4 w-4" />
           </div>
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            {sortedAccountSummaries.map((summary) => (
-              <AccountCard key={summary.account.id} summary={summary} />
-            ))}
+          <div>
+            <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
+              Mes Comptes <span className="text-white/35">({accountSummaries.length})</span>
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Vue synthétique de vos comptes et de leur progression récente
+            </p>
           </div>
-        </section>
+        </div>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {sortedAccountSummaries.map((summary) => (
+            <AccountCard key={summary.account.id} summary={summary} />
+          ))}
+        </div>
+      </section>
 
-        <Separator className="bg-white/10" />
+      <Separator className="bg-white/10" />
 
-        <section className="space-y-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
-                <ChartColumnBig className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
-                  Toutes les positions <span className="text-white/35">({positions.length})</span>
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Positions classées par poids dans le portefeuille
-                </p>
-              </div>
-            </div>
-            <PriceRefreshButton />
-          </div>
-          <PositionsGrid positions={positions} portfolioTotalValue={totalValueEur} />
-        </section>
-      </div>
+      <PositionsSection
+        positions={positions}
+        portfolioTotalValue={totalValueEur}
+      />
     </div>
   );
 }

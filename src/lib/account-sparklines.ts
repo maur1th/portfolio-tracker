@@ -4,15 +4,10 @@ export interface AccountSnapshotPoint {
   totalValueEur: number | null;
 }
 
-export interface AccountSparklinePoint {
-  date: string;
-  value: number;
-}
-
 export function buildAccountSparklineHistory(
   snapshotRows: AccountSnapshotPoint[]
-): Map<number, AccountSparklinePoint[]> {
-  const historyByAccount = new Map<number, AccountSparklinePoint[]>();
+): Map<number, Array<{ date: string; value: number }>> {
+  const historyByAccount = new Map<number, Array<{ date: string; value: number }>>();
 
   for (const row of snapshotRows) {
     if (!row.date || row.totalValueEur === null) {
@@ -35,15 +30,4 @@ export function buildAccountSparklineHistory(
   }
 
   return historyByAccount;
-}
-
-export function computePositionAllocation(
-  positionValue: number,
-  portfolioTotalValue: number
-): number {
-  if (portfolioTotalValue <= 0) {
-    return 0;
-  }
-
-  return positionValue / portfolioTotalValue;
 }

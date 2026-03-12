@@ -72,7 +72,7 @@ export function ExposureCharts({ exposure, lastCountryWeightsFetchDate, geoTarge
   }
 
   return (
-    <Card className="overflow-hidden border-white/12 bg-[rgba(9,18,38,0.92)]">
+    <Card className="dashboard-panel overflow-hidden">
       <CardHeader className="flex flex-col gap-4 border-b border-white/8 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">
@@ -153,7 +153,7 @@ interface ExposureSectionProps {
 
 function ExposureSection({ title, items, targets, showValues }: ExposureSectionProps) {
   return (
-    <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.02] p-5">
+    <div className="dashboard-subtle-surface rounded-[1.2rem] border border-white/10 p-5">
       <h3 className="mb-5 text-lg font-semibold tracking-[-0.03em] text-white">
         {title}
       </h3>
@@ -166,16 +166,16 @@ function ExposureSection({ title, items, targets, showValues }: ExposureSectionP
                 <span className="font-medium text-white">
                   {item.label}
                   {target != null && (
-                    <span className="ml-1 text-xs font-normal text-white/50">
+                    <span className="dashboard-text-faint ml-1 text-xs font-normal">
                       (cible {target} %)
                     </span>
                   )}
                 </span>
-                <span className="text-white/72">
+                <span className="dashboard-text-soft">
                   {formatPercent(item.percentage / 100)}
                 </span>
               </div>
-              <div className="relative mb-2 h-3 w-full rounded-full bg-white/8">
+              <div className="dashboard-track relative mb-2 h-3 w-full rounded-full">
                 <div
                   className="h-3 rounded-full transition-all"
                   style={{
@@ -192,7 +192,7 @@ function ExposureSection({ title, items, targets, showValues }: ExposureSectionP
                 )}
               </div>
               {showValues && (
-                <div className="text-sm text-white/72">
+                <div className="dashboard-text-soft text-sm">
                   {formatCurrency(item.value)}
                 </div>
               )}

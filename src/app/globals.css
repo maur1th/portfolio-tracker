@@ -55,6 +55,22 @@
     --color-chart-actual: #7be0bb;
     --color-chart-tooltip-bg: rgba(15, 23, 42, 0.96);
     --color-chart-tooltip-border: rgba(71, 85, 105, 0.8);
+    --dashboard-panel-bg: rgba(8, 18, 42, 0.92);
+    --dashboard-panel-border: rgba(255, 255, 255, 0.12);
+    --dashboard-panel-inner-border: rgba(255, 255, 255, 0.1);
+    --dashboard-panel-shadow: 0 26px 70px rgba(2, 6, 23, 0.42);
+    --dashboard-panel-shadow-lg: 0 30px 80px rgba(2, 6, 23, 0.48);
+    --dashboard-subtle-bg: rgba(255, 255, 255, 0.02);
+    --dashboard-chip-bg: rgba(255, 255, 255, 0.06);
+    --dashboard-chip-border: rgba(255, 255, 255, 0.16);
+    --dashboard-track: rgba(255, 255, 255, 0.08);
+    --dashboard-fill-neutral: rgba(91, 116, 149, 0.95);
+    --dashboard-text-strong: rgba(255, 255, 255, 0.88);
+    --dashboard-text-soft: rgba(255, 255, 255, 0.72);
+    --dashboard-text-muted: rgba(255, 255, 255, 0.58);
+    --dashboard-text-dim: rgba(255, 255, 255, 0.55);
+    --dashboard-text-faint: rgba(255, 255, 255, 0.45);
+    --dashboard-dot: rgba(255, 255, 255, 0.25);
   }
 
   body {
@@ -70,5 +86,68 @@
 
   ::selection {
     background: rgba(110, 231, 183, 0.3);
+  }
+}
+
+@layer components {
+  .dashboard-panel {
+    background-color: var(--dashboard-panel-bg);
+    border-color: var(--dashboard-panel-border);
+    box-shadow: var(--dashboard-panel-shadow);
+  }
+
+  .dashboard-panel-elevated {
+    background-color: var(--dashboard-panel-bg);
+    border-color: var(--dashboard-panel-border);
+    box-shadow: var(--dashboard-panel-shadow-lg);
+  }
+
+  .dashboard-panel-outline {
+    border-color: var(--dashboard-panel-inner-border);
+  }
+
+  .dashboard-subtle-surface {
+    background-color: var(--dashboard-subtle-bg);
+  }
+
+  .dashboard-chip {
+    background-color: var(--dashboard-chip-bg);
+    border-color: var(--dashboard-chip-border);
+    color: var(--dashboard-text-strong);
+  }
+
+  .dashboard-action {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--dashboard-panel-border);
+    color: hsl(var(--foreground));
+    box-shadow: 0 20px 40px rgba(2, 6, 23, 0.28);
+  }
+
+  .dashboard-text-soft {
+    color: var(--dashboard-text-soft);
+  }
+
+  .dashboard-text-muted {
+    color: var(--dashboard-text-muted);
+  }
+
+  .dashboard-text-dim {
+    color: var(--dashboard-text-dim);
+  }
+
+  .dashboard-text-faint {
+    color: var(--dashboard-text-faint);
+  }
+
+  .dashboard-dot {
+    background-color: var(--dashboard-dot);
+  }
+
+  .dashboard-track {
+    background-color: var(--dashboard-track);
+  }
+
+  .dashboard-fill-neutral {
+    background-color: var(--dashboard-fill-neutral);
   }
 }

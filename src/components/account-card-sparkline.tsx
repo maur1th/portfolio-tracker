@@ -20,7 +20,7 @@ export function AccountCardSparkline({
   if (data.length === 0) {
     return (
       <div className="flex h-24 items-end justify-end">
-        <div className="rounded-full border border-white/12 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/45">
+        <div className="dashboard-chip rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.22em]">
           Pas d&apos;historique
         </div>
       </div>

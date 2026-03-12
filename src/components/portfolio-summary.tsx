@@ -17,7 +17,7 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
   const gainLossPercent = totalCostEur > 0 ? gainLossEUR / totalCostEur : 0;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="dashboard-panel overflow-hidden">
       <CardHeader className="border-b border-white/8 pb-4">
         <div className="flex items-center gap-3">
           <div className="rounded-full border border-border bg-[hsl(var(--surface-muted))] p-2">

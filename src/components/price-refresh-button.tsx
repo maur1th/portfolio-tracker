@@ -37,7 +37,7 @@ export function PriceRefreshButton() {
       onClick={handleRefresh}
       disabled={loading}
       variant="outline"
-      className="h-12 border-white/12 bg-white/5 px-5 text-base text-white shadow-[0_20px_40px_rgba(2,6,23,0.28)] hover:bg-white/8"
+      className="dashboard-action h-12 px-5 text-base hover:bg-white/8"
     >
       <RefreshCw className={loading ? "animate-spin" : ""} />
       {loading ? "Mise à jour..." : "Actualiser les prix"}

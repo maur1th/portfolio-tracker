@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildAccountSparklineHistory,
-  computePositionAllocation,
-} from "./homepage-widgets";
+import { buildAccountSparklineHistory } from "./account-sparklines";
 
 describe("buildAccountSparklineHistory", () => {
   it("returns ordered daily values per account", () => {
@@ -40,15 +37,5 @@ describe("buildAccountSparklineHistory", () => {
 
     expect(history.get(2)).toEqual([{ date: "2026-03-11", value: 500 }]);
     expect(history.get(3)).toBeUndefined();
-  });
-});
-
-describe("computePositionAllocation", () => {
-  it("computes the position share of the portfolio", () => {
-    expect(computePositionAllocation(2500, 10000)).toBe(0.25);
-  });
-
-  it("returns zero when the portfolio total is zero", () => {
-    expect(computePositionAllocation(2500, 0)).toBe(0);
   });
 });

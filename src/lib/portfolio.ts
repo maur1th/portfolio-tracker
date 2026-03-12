@@ -10,7 +10,7 @@ import {
 import { eq, desc, and, sql } from "drizzle-orm";
 import { convertToEUR } from "./currencies";
 import type { PortfolioPosition } from "@/types";
-import { buildAccountSparklineHistory } from "./homepage-widgets";
+import { buildAccountSparklineHistory } from "./account-sparklines";
 
 export async function getPortfolioPositions(): Promise<PortfolioPosition[]> {
   const result = await db
@@ -109,6 +109,10 @@ export interface AccountSummary {
 
 export async function getAccountSummaries(): Promise<AccountSummary[]> {
   const portfolioPositions = await getPortfolioPositions();
+  if (portfolioPositions.length === 0) {
+    return [];
+  }
+
   const snapshotRows = await db
     .select({
       accountId: positionSnapshots.accountId,
@@ -133,7 +137,7 @@ export async function getAccountSummaries(): Promise<AccountSummary[]> {
         gainLoss: 0,
         gainLossPercent: 0,
         positionCount: 0,
-        sparklineHistory: sparklineHistory.get(p.account.id) ?? [],
+        sparklineHistory: [],
       };
       accountMap.set(p.account.id, summary);
     }
@@ -147,7 +151,8 @@ export async function getAccountSummaries(): Promise<AccountSummary[]> {
     summary.gainLoss = summary.totalValue - summary.totalCost;
     summary.gainLossPercent =
       summary.totalCost > 0 ? summary.gainLoss / summary.totalCost : 0;
-    summary.sparklineHistory = summary.sparklineHistory.slice(-12);
+    summary.sparklineHistory =
+      (sparklineHistory.get(summary.account.id) ?? []).slice(-12);
   }
 
   return Array.from(accountMap.values());
