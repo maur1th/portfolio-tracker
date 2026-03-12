@@ -2,7 +2,8 @@
   "geography": {
     "US": 45,
     "Europe": 25,
-    "Asie-Pacifique": 20
+    "Asie-Pacifique": 20,
+    "Japon": 10
   },
   "marketCap": {
     "Large Cap": 70,
