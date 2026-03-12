@@ -60,13 +60,13 @@ export function PositionsGrid({
                   </div>
                 </div>
                 <div>
-                  <div className="text-dash-muted text-sm">PRU</div>
+                  <div className="text-dash-muted text-sm">Px. Revient</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {formatCurrency(position.position.avgCostPerUnit)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-dash-muted text-sm">Prix actuel</div>
+                  <div className="text-dash-muted text-sm">Cours</div>
                   <div className="mt-1 text-[1.1rem] font-semibold text-white">
                     {position.currentPrice
                       ? formatCurrency(position.currentPrice)
@@ -77,7 +77,7 @@ export function PositionsGrid({
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
                 <div>
-                  <div className="text-dash-muted text-sm">Valeur totale</div>
+                  <div className="text-dash-muted text-sm">Valorisation</div>
                   <div className="mt-1 text-xl font-semibold leading-none tracking-[-0.04em] text-white">
                     {formatCurrency(position.totalValue)}
                   </div>

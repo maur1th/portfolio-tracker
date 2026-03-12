@@ -21,11 +21,11 @@ const portfolioChartTooltip = {
 
 const chartConfig = {
   totalValueEur: {
-    label: "Valeur",
+    label: "Valorisation",
     color: "hsl(var(--chart-1))",
   },
   totalCostEur: {
-    label: "Coût",
+    label: "Montant investi",
     color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig;

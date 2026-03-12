@@ -36,19 +36,19 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
       <CardContent className="pt-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <div className="text-sm text-muted-foreground">Valeur totale</div>
+            <div className="text-sm text-muted-foreground">Valorisation</div>
             <div className="text-xl font-semibold tracking-[-0.03em]">
               {formatCurrency(totalValueEur)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground">Coût total</div>
+            <div className="text-sm text-muted-foreground">Montant investi</div>
             <div className="text-xl font-semibold tracking-[-0.03em]">
               {formatCurrency(totalCostEur)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground">Gain/Perte</div>
+            <div className="text-sm text-muted-foreground">+/- value latente</div>
             <div
               className={`text-xl font-semibold tracking-[-0.03em] ${
                 gainLossEUR >= 0 ? "text-emerald-300" : "text-rose-400"
@@ -75,9 +75,6 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
               <h3 className="text-base font-semibold tracking-[-0.02em] text-white">
                 Valorisation du portefeuille
               </h3>
-              <p className="text-sm text-muted-foreground">
-                Valeur et coût sur l&apos;historique des snapshots
-              </p>
             </div>
             <PortfolioChartContent snapshotHistory={snapshotHistory} />
           </div>

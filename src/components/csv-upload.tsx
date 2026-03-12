@@ -227,7 +227,7 @@ export function CSVUpload({ accounts }: CSVUploadProps) {
                     <TableHead>ISIN</TableHead>
                     <TableHead>Ticker</TableHead>
                     <TableHead className="text-right">Quantité</TableHead>
-                    <TableHead className="text-right">PRU</TableHead>
+                    <TableHead className="text-right">Px. Revient</TableHead>
                     <TableHead>Devise</TableHead>
                   </TableRow>
                 </TableHeader>
