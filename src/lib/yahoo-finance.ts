@@ -290,33 +290,6 @@ export async function fetchPrices(
   return priceMap;
 }
 
-export async function fetchExchangeRates(
-  baseCurrencies: string[],
-  quoteCurrency = "EUR"
-): Promise<Map<string, number>> {
-  const rateMap = new Map<string, number>();
-  const uniqueCurrencies = [...new Set(baseCurrencies)]
-    .filter((currency) => currency !== quoteCurrency);
-
-  for (const baseCurrency of uniqueCurrencies) {
-    try {
-      const ticker = `${baseCurrency}${quoteCurrency}=X`;
-      const result = await yahooFinance.quote(ticker);
-      const rate = result.regularMarketPrice;
-
-      if (typeof rate === "number" && Number.isFinite(rate)) {
-        rateMap.set(baseCurrency, rate);
-      } else {
-        console.error(`No FX rate returned for ${ticker}`);
-      }
-    } catch (error) {
-      console.error(`Failed to fetch FX rate for ${baseCurrency}->${quoteCurrency}:`, error);
-    }
-  }
-
-  return rateMap;
-}
-
 function determineInstrumentType(
   quoteType?: string
 ): "stock" | "etf" | "bond" | "fund" {

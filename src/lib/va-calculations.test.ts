@@ -3,7 +3,6 @@ import {
   computeTargetForSnapshot,
   computeVariance,
   computeMonthProgress,
-  computeProgressRatios,
   computeFundingProgress,
   computeContributionProgress,
   buildChartData,
@@ -79,26 +78,6 @@ describe("computeMonthProgress", () => {
     const result = computeMonthProgress(date);
     expect(result.daysInMonth).toBe(28);
     expect(result.daysRemaining).toBe(14);
-  });
-});
-
-describe("computeProgressRatios", () => {
-  it("computes ratios relative to the larger value", () => {
-    const result = computeProgressRatios(8000, 10000);
-    expect(result.targetRatio).toBe(100);
-    expect(result.currentRatio).toBe(80);
-  });
-
-  it("handles current > target", () => {
-    const result = computeProgressRatios(12000, 10000);
-    expect(result.currentRatio).toBe(100);
-    expect(result.targetRatio).toBeCloseTo(83.33, 1);
-  });
-
-  it("handles zero values", () => {
-    const result = computeProgressRatios(0, 0);
-    expect(result.targetRatio).toBe(0);
-    expect(result.currentRatio).toBe(0);
   });
 });
 

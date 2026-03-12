@@ -174,6 +174,7 @@ export async function computePortfolioTotalEUR(
   let totalCostEur = 0;
 
   for (const p of positions) {
+    // PortfolioPosition totals are already normalized to EUR upstream.
     totalValueEur += p.totalValue;
     totalCostEur += p.totalCost;
   }

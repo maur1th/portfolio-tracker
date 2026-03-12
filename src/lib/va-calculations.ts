@@ -33,15 +33,6 @@ export function computeMonthProgress(date: Date) {
   return { currentDay, daysInMonth, daysRemaining, daysProgress };
 }
 
-export function computeProgressRatios(currentValue: number, targetValue: number) {
-  const maxValue = Math.max(currentValue, targetValue);
-  if (maxValue === 0) return { targetRatio: 0, currentRatio: 0 };
-  return {
-    targetRatio: (targetValue / maxValue) * 100,
-    currentRatio: (currentValue / maxValue) * 100,
-  };
-}
-
 export function computeFundingProgress(monthlyIncrement: number, amountToInvest: number) {
   if (monthlyIncrement <= 0) {
     return { progressRatio: 100, remainingRatio: 0 };

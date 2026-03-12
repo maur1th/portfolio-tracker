@@ -12,7 +12,6 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import type { DcaSuggestion } from "@/lib/dca-suggestions";
 import type { Geography } from "@/lib/exposure";
 import { formatCurrency } from "@/lib/format";
 import {
-  buildChartData,
   computeContributionProgress,
   computeFundingProgress,
   computeMonthProgress,
@@ -70,42 +68,34 @@ interface VAWidgetProps {
 
 const statusTone = {
   ahead: {
-    badge: "#79deb0",
-    accent: "#79deb0",
-    bar: "#79deb0",
-    track: "#0b4c49",
+    badge: "var(--color-success)",
+    accent: "var(--color-success)",
+    bar: "var(--color-success)",
+    track: "var(--color-surface-tint-success)",
   },
   behind: {
-    badge: "#f8d97b",
-    accent: "#f8d97b",
-    bar: "#f8d97b",
-    track: "#5b4114",
+    badge: "var(--color-warning)",
+    accent: "var(--color-warning)",
+    bar: "var(--color-warning)",
+    track: "var(--color-surface-tint-warning)",
   },
   "on-track": {
-    badge: "#66a5d1",
-    accent: "#66a5d1",
-    bar: "#66a5d1",
-    track: "#123d4f",
+    badge: "var(--color-info)",
+    accent: "var(--color-info)",
+    bar: "var(--color-info)",
+    track: "var(--color-surface-tint-info)",
   },
 } as const;
 
-const vaChartColors = {
-  axis: "rgba(148, 163, 184, 0.85)",
-  axisLine: "rgba(71, 85, 105, 0.8)",
-  target: "#cbd5e1",
-  actual: "#7be0bb",
-  tooltipBg: "rgba(15, 23, 42, 0.96)",
-  tooltipBorder: "rgba(71, 85, 105, 0.8)",
-};
-
 const vaTheme = {
-  surfaceMuted: "#152130",
-  surfaceWarning: "#5b4114",
-  lineSoft: "#3e5368",
-  textSoft: "#cad6e5",
-  success: "#79deb0",
-  warning: "#f8d97b",
-  danger: "#eb84a0",
+  background: "var(--color-background)",
+  surfaceMuted: "var(--color-surface-muted)",
+  surfaceWarning: "var(--color-surface-tint-warning)",
+  lineSoft: "var(--color-line-soft)",
+  textSoft: "var(--color-text-soft)",
+  success: "var(--color-success)",
+  warning: "var(--color-warning)",
+  danger: "var(--color-danger)",
 };
 
 function SectionCard({
@@ -279,7 +269,6 @@ export function VAWidget({
     calculation.amountToInvest,
     daysProgress
   );
-  const chartData = buildChartData(config, snapshotHistory);
   const { progressRatio, remainingRatio } = computeFundingProgress(
     config.monthlyIncrement,
     calculation.amountToInvest
@@ -309,7 +298,9 @@ export function VAWidget({
           </div>
           <div>
             <CardTitle className="text-xl font-semibold tracking-[-0.03em]">Value Averaging</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">Pilotage mensuel de la trajectoire cible du portefeuille</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Pilotage mensuel de la trajectoire cible du portefeuille
+            </p>
           </div>
         </div>
       </CardHeader>
@@ -322,7 +313,9 @@ export function VAWidget({
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex items-baseline gap-2">
-                <span className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] text-foreground">Statut:</span>
+                <span className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em] text-foreground">
+                  Statut:
+                </span>
                 <span
                   className="text-[clamp(1rem,1.6vw,1.35rem)] font-semibold tracking-[-0.03em]"
                   style={{ color: headerTone.badge }}
@@ -357,15 +350,24 @@ export function VAWidget({
                     </div>
                   </div>
                 </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{remainingRatio.toFixed(0)}% restant</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {remainingRatio.toFixed(0)}% restant
+                </span>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 xl:justify-end">
                 <div className="text-right">
-                  <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">À investir</div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    À investir
+                  </div>
                   <div
                     className="text-[clamp(1.2rem,1.9vw,1.6rem)] font-semibold tracking-[-0.03em]"
-                    style={{ color: calculation.amountToInvest === 0 ? vaTheme.success : vaTheme.warning }}
+                    style={{
+                      color:
+                        calculation.amountToInvest === 0
+                          ? vaTheme.success
+                          : vaTheme.warning,
+                    }}
                   >
                     {formatCurrency(calculation.amountToInvest)}
                   </div>
@@ -403,7 +405,10 @@ export function VAWidget({
                 </div>
                 <div className="text-left sm:text-right">
                   <div className="text-sm text-muted-foreground">Trajectoire cible</div>
-                  <div className="mt-1 text-xl font-semibold tracking-[-0.03em]" style={{ color: vaTheme.textSoft }}>
+                  <div
+                    className="mt-1 text-xl font-semibold tracking-[-0.03em]"
+                    style={{ color: vaTheme.textSoft }}
+                  >
                     {formatCurrency(calculation.targetValue)}
                   </div>
                 </div>
@@ -416,7 +421,11 @@ export function VAWidget({
                 >
                   {varianceIsPositive ? "+" : ""}
                   {formatCurrency(variance)}
-                  {varianceIsPositive ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                  {varianceIsPositive ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4" />
+                  )}
                 </span>
               </div>
             </div>
@@ -440,7 +449,9 @@ export function VAWidget({
               </div>
               <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium" style={{ color: paceTone.accent }}>{monthPaceLabel}</span>
+                  <span className="font-medium" style={{ color: paceTone.accent }}>
+                    {monthPaceLabel}
+                  </span>
                   <span className="text-muted-foreground">{daysRemaining} jours restants</span>
                 </div>
                 <div className="space-y-2">
@@ -450,7 +461,10 @@ export function VAWidget({
                   >
                     <div
                       className="absolute inset-y-1 left-0 rounded-full"
-                      style={{ width: `${contributionProgress.expectedRatio}%`, backgroundColor: vaTheme.lineSoft }}
+                      style={{
+                        width: `${contributionProgress.expectedRatio}%`,
+                        backgroundColor: vaTheme.lineSoft,
+                      }}
                     />
                     <div
                       className="absolute inset-y-1 left-0 rounded-full"
@@ -468,7 +482,7 @@ export function VAWidget({
                       style={{
                         left: `${contributionMarkerLeft}%`,
                         borderColor: paceTone.bar,
-                        backgroundColor: "#081528",
+                        backgroundColor: vaTheme.background,
                       }}
                     />
                   </div>
@@ -478,7 +492,10 @@ export function VAWidget({
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Investissement vs objectif mensuel</span>
-                    <span>{contributionProgress.actualRatio.toFixed(0)}% investi / {contributionProgress.expectedRatio.toFixed(0)}% attendu</span>
+                    <span>
+                      {contributionProgress.actualRatio.toFixed(0)}% investi /{" "}
+                      {contributionProgress.expectedRatio.toFixed(0)}% attendu
+                    </span>
                   </div>
                 </div>
               </div>
@@ -496,7 +513,12 @@ export function VAWidget({
                 </div>
                 <div className="text-left sm:text-right">
                   <div className="text-sm text-muted-foreground">Stratégie</div>
-                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em]" style={{ color: vaTheme.textSoft }}>Incrément standard</div>
+                  <div
+                    className="mt-1 text-lg font-semibold tracking-[-0.03em]"
+                    style={{ color: vaTheme.textSoft }}
+                  >
+                    Incrément standard
+                  </div>
                 </div>
               </div>
               <div className="flex items-center justify-between border-t border-border pt-4">
@@ -508,21 +530,28 @@ export function VAWidget({
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">Mois écoulés</div>
-                  <div className="mt-1 text-lg font-semibold tracking-[-0.03em]" style={{ color: vaTheme.textSoft }}>{calculation.monthsElapsed}</div>
+                  <div
+                    className="mt-1 text-lg font-semibold tracking-[-0.03em]"
+                    style={{ color: vaTheme.textSoft }}
+                  >
+                    {calculation.monthsElapsed}
+                  </div>
                 </div>
               </div>
             </div>
           </SectionCard>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[1.05fr_1fr]">
+        <div className="grid gap-4">
           <div className="rounded-[1rem] border border-border bg-card p-4">
             <div className="mb-5 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" style={{ color: vaTheme.success }} />
               <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
                 {isNextMonth ? "Suggestions du mois suivant" : "Suggestions du mois"}
               </h3>
-              <span className="text-sm text-muted-foreground">Basé sur {formatCurrency(suggestionsAmount || config.monthlyIncrement)}</span>
+              <span className="text-sm text-muted-foreground">
+                Basé sur {formatCurrency(suggestionsAmount || config.monthlyIncrement)}
+              </span>
             </div>
 
             {suggestions.length > 0 ? (
@@ -564,95 +593,6 @@ export function VAWidget({
                 Aucune suggestion pour le moment.
               </div>
             )}
-          </div>
-
-          <div className="rounded-[1rem] border border-border bg-card p-4">
-            <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
-                Historique de performance <span className="text-sm text-muted-foreground">(6 derniers mois)</span>
-              </h3>
-              <div className="flex flex-wrap items-center gap-5 text-sm" style={{ color: vaTheme.textSoft }}>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 border-t-2 border-dashed" style={{ borderColor: vaTheme.textSoft }} />
-                  <span>Trajectoire cible</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-[2px] w-8" style={{ backgroundColor: vaTheme.success }} />
-                  <span>Valeur réelle</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="h-[250px] w-full">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 8, right: 16, left: -16, bottom: 0 }}>
-                    <XAxis
-                      dataKey="label"
-                      axisLine={{ stroke: vaChartColors.axisLine }}
-                      tickLine={false}
-                      tick={{ fill: vaChartColors.axis, fontSize: 12 }}
-                      dy={10}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: vaChartColors.axis, fontSize: 12 }}
-                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k €`}
-                      orientation="right"
-                      dx={10}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: vaChartColors.tooltipBg,
-                        border: `1px solid ${vaChartColors.tooltipBorder}`,
-                        borderRadius: "12px",
-                        boxShadow: "0 16px 40px rgba(2, 6, 23, 0.35)",
-                      }}
-                      itemStyle={{ color: "hsl(var(--foreground))", fontSize: "13px", fontWeight: 600 }}
-                      labelStyle={{ color: "hsl(var(--muted-foreground))", fontSize: "12px", marginBottom: "4px" }}
-                      labelFormatter={(_, payload) => {
-                        const rawDate = payload?.[0]?.payload?.date;
-                        if (!rawDate) return "";
-                        return new Date(rawDate).toLocaleDateString("fr-FR", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        });
-                      }}
-                      formatter={(value: number, name: string) => [
-                        formatCurrency(value),
-                        name === "target" ? "Objectif" : "Valeur réelle",
-                      ]}
-                    />
-                    <ReferenceLine y={calculation.targetValue} stroke={vaChartColors.axisLine} strokeDasharray="3 6" />
-                    <Line
-                      type="monotone"
-                      dataKey="target"
-                      stroke={vaChartColors.target}
-                      strokeWidth={2}
-                      strokeDasharray="6 6"
-                      dot={false}
-                      activeDot={{ r: 4, fill: "hsl(var(--foreground))", stroke: "hsl(var(--background))", strokeWidth: 2 }}
-                      name="target"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="actual"
-                      stroke={vaChartColors.actual}
-                      strokeWidth={3}
-                      dot={false}
-                      activeDot={{ r: 5, fill: vaChartColors.actual, stroke: "hsl(var(--background))", strokeWidth: 2 }}
-                      name="actual"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                  Données insuffisantes.
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </CardContent>

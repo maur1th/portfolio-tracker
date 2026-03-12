@@ -13,6 +13,12 @@ interface PortfolioChartProps {
   snapshotHistory: SnapshotTotal[];
 }
 
+const portfolioChartTooltip = {
+  backgroundColor: "var(--color-chart-tooltip-bg)",
+  border: "1px solid var(--color-chart-tooltip-border)",
+  color: "var(--color-foreground)",
+};
+
 const chartConfig = {
   totalValueEur: {
     label: "Valeur",
@@ -58,8 +64,14 @@ export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) 
           content={({ active, payload, label }) => {
             if (!active || !payload?.length) return null;
             return (
-              <div className="rounded-lg border bg-background p-2 shadow-sm">
-                <div className="mb-1 text-sm font-medium">
+              <div
+                className="rounded-xl p-2 shadow-sm"
+                style={portfolioChartTooltip}
+              >
+                <div
+                  className="mb-1 text-sm font-medium"
+                  style={{ color: "var(--color-foreground)" }}
+                >
                   {new Date(label).toLocaleDateString("fr-FR", {
                     day: "numeric",
                     month: "long",
@@ -75,11 +87,14 @@ export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) 
                       className="h-2.5 w-2.5 rounded-full"
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-muted-foreground">
+                    <span style={{ color: "var(--color-muted-foreground)" }}>
                       {chartConfig[entry.dataKey as keyof typeof chartConfig]
                         ?.label ?? entry.dataKey}
                     </span>
-                    <span className="ml-auto font-medium">
+                    <span
+                      className="ml-auto font-medium"
+                      style={{ color: "var(--color-foreground)" }}
+                    >
                       {formatCurrency(entry.value as number)}
                     </span>
                   </div>

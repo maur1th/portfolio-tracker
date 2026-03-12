@@ -36,6 +36,25 @@
     --success: 152 62% 67%;
     --warning: 43 92% 72%;
     --danger: 349 76% 72%;
+    --color-foreground: hsl(var(--foreground));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-background: hsl(var(--background));
+    --color-surface-muted: hsl(var(--surface-muted));
+    --color-surface-tint-success: hsl(var(--surface-tint-success));
+    --color-surface-tint-warning: hsl(var(--surface-tint-warning));
+    --color-surface-tint-info: hsl(var(--surface-tint-info));
+    --color-line-soft: hsl(var(--line-soft));
+    --color-text-soft: hsl(var(--text-soft));
+    --color-success: hsl(var(--success));
+    --color-warning: hsl(var(--warning));
+    --color-danger: hsl(var(--danger));
+    --color-info: hsl(var(--chart-3));
+    --color-chart-axis: rgba(148, 163, 184, 0.85);
+    --color-chart-axis-line: rgba(71, 85, 105, 0.8);
+    --color-chart-target: #cbd5e1;
+    --color-chart-actual: #7be0bb;
+    --color-chart-tooltip-bg: rgba(15, 23, 42, 0.96);
+    --color-chart-tooltip-border: rgba(71, 85, 105, 0.8);
   }
 
   body {
