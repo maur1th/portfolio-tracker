@@ -91,7 +91,7 @@ export interface AccountSummary {
   account: {
     id: number;
     name: string;
-    type: "PEA" | "CTO";
+    type: "PEA" | "CTO" | "PER";
     currency: string;
   };
   broker: {

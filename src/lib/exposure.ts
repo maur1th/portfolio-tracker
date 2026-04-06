@@ -150,6 +150,7 @@ const MARKET_CAP_SPLITS: Array<{ pattern: RegExp; split: CapSplit }> = [
   { pattern: /ftse\s*100/i, split: { large: 1, mid: 0, small: 0 } },
   { pattern: /euro\s*stoxx\s*50/i, split: { large: 1, mid: 0, small: 0 } },
   { pattern: /topix/i, split: { large: 0.7, mid: 0.2, small: 0.1 } },
+  { pattern: /msci\s*japan/i, split: { large: 0.85, mid: 0.15, small: 0 } },
   { pattern: /nikkei/i, split: { large: 0.85, mid: 0.15, small: 0 } },
   { pattern: /emerging|émergents|msci\s*em\b/i, split: { large: 0.85, mid: 0.15, small: 0 } },
 

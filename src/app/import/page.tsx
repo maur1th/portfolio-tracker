@@ -1,7 +1,10 @@
 import { db } from "@/db";
 import { accounts, brokers } from "@/db/schema";
 import { CSVUpload } from "@/components/csv-upload";
+import { ManualPositionEntry } from "@/components/manual-position-entry";
 import { eq } from "drizzle-orm";
+
+const CSV_BROKERS = ["Boursobank", "IBKR"];
 
 export default async function ImportPage() {
   const allAccounts = await db
@@ -16,10 +19,14 @@ export default async function ImportPage() {
     .from(accounts)
     .innerJoin(brokers, eq(accounts.brokerId, brokers.id));
 
+  const csvAccounts = allAccounts.filter((a) => CSV_BROKERS.includes(a.brokerName));
+  const manualAccounts = allAccounts.filter((a) => !CSV_BROKERS.includes(a.brokerName));
+
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Importer des positions depuis CSV</h1>
-      <CSVUpload accounts={allAccounts} />
+    <div className="container mx-auto py-8 space-y-8">
+      <h1 className="text-3xl font-bold">Importer des positions</h1>
+      <CSVUpload accounts={csvAccounts} />
+      <ManualPositionEntry accounts={manualAccounts} />
     </div>
   );
 }
