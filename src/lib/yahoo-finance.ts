@@ -70,19 +70,11 @@ export async function searchByISIN(isin: string): Promise<string | null> {
           const data = firstResult.data;
           console.log(`[searchByISIN] Found ${data.length} results from OpenFIGI`);
 
-          const primaryExchanges = ["FP", "EP", "PA", "GR", "GY", "LN", "SW", "SE", "US"];
+          const bestTicker = selectBestExchangeTicker(data);
 
-          for (const item of data) {
-            if (item.ticker && item.exchCode) {
-              const isPrimary = primaryExchanges.includes(item.exchCode.toUpperCase());
-              const ticker = formatYahooTicker(item.ticker, item.exchCode);
-              console.log(`[searchByISIN] Found: ${item.ticker} on ${item.exchCode} → ${ticker} ${isPrimary ? '[PRIMARY]' : ''}`);
-
-              if (isPrimary) {
-                console.log(`[searchByISIN] ✓ Using primary exchange ticker: ${ticker}`);
-                return ticker;
-              }
-            }
+          if (bestTicker) {
+            console.log(`[searchByISIN] ✓ Using best primary exchange ticker: ${bestTicker}`);
+            return bestTicker;
           }
 
           // If no primary exchange, try validating others
@@ -131,7 +123,31 @@ export async function searchByISIN(isin: string): Promise<string | null> {
   }
 }
 
-function formatYahooTicker(ticker: string, exchCode: string): string {
+// Prefer Paris, then other European exchanges, then US/UK
+export const EXCHANGE_PREFERENCE = ["FP", "EP", "PA", "GR", "GY", "LN", "SW", "SE", "US"];
+
+export interface OpenFIGIResult {
+  ticker?: string;
+  exchCode?: string;
+}
+
+export function selectBestExchangeTicker(data: OpenFIGIResult[]): string | null {
+  let bestMatch: { ticker: string; rank: number } | null = null;
+
+  for (const item of data) {
+    if (item.ticker && item.exchCode) {
+      const rank = EXCHANGE_PREFERENCE.indexOf(item.exchCode.toUpperCase());
+      if (rank >= 0 && (bestMatch === null || rank < bestMatch.rank)) {
+        const ticker = formatYahooTicker(item.ticker, item.exchCode);
+        bestMatch = { ticker, rank };
+      }
+    }
+  }
+
+  return bestMatch?.ticker ?? null;
+}
+
+export function formatYahooTicker(ticker: string, exchCode: string): string {
   const exchangeMap: Record<string, string> = {
     "FP": "PA",  // Euronext Paris (OpenFIGI code)
     "EP": "PA",  // Euronext Paris (alternative)

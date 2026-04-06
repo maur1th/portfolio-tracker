@@ -5,15 +5,9 @@ import { eq } from "drizzle-orm";
 import { lookupInstrument, searchByISIN, fetchPrices } from "@/lib/yahoo-finance";
 import { refreshExchangeRates } from "@/lib/currencies";
 import { recordSnapshots } from "@/lib/snapshots";
+import type { ParsedPosition } from "@/lib/csv-parsers/types";
 
-export interface ParsedPosition {
-  isin?: string;
-  ticker?: string;
-  name: string;
-  quantity: number;
-  avgCostPerUnit: number;
-  currency: string;
-}
+export type { ParsedPosition };
 
 export async function POST(request: NextRequest) {
   try {

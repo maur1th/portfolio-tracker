@@ -16,7 +16,7 @@ export const accounts = sqliteTable("accounts", {
     .notNull()
     .references(() => brokers.id),
   name: text("name").notNull(),
-  type: text("type", { enum: ["PEA", "CTO"] }).notNull(),
+  type: text("type", { enum: ["PEA", "CTO", "PER"] }).notNull(),
   currency: text("currency").notNull().default("EUR"),
 });
 
