@@ -72,11 +72,6 @@ export async function PortfolioSummary({ positions, snapshotHistory }: Portfolio
 
         {snapshotHistory.length > 0 ? (
           <div className="mt-6 border-t border-white/8 pt-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h3 className="text-base font-semibold tracking-[-0.02em] text-white">
-                Valorisation du portefeuille
-              </h3>
-            </div>
             <PortfolioChartContent snapshotHistory={snapshotHistory} />
           </div>
         ) : null}
