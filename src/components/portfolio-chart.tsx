@@ -8,34 +8,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { formatCurrency } from "@/lib/format";
+import {
+  type TimeRange,
+  timeRangeLabels,
+  getTimeRangeCutoff,
+} from "@/lib/time-range";
 import type { SnapshotTotal } from "@/lib/value-averaging";
 import { usePrivacy } from "./privacy-provider";
-
-type TimeRange = "30d" | "90d" | "6m" | "ytd" | "12m";
-
-const timeRangeLabels: Record<TimeRange, string> = {
-  "30d": "30 jours",
-  "90d": "90 jours",
-  "6m": "6 mois",
-  "ytd": "YTD",
-  "12m": "12 mois",
-};
-
-function getTimeRangeCutoff(range: TimeRange): Date {
-  const now = new Date();
-  switch (range) {
-    case "30d":
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
-    case "90d":
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 90);
-    case "6m":
-      return new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-    case "ytd":
-      return new Date(now.getFullYear(), 0, 1);
-    case "12m":
-      return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-  }
-}
 
 interface PortfolioChartProps {
   snapshotHistory: SnapshotTotal[];
@@ -69,6 +48,7 @@ export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) 
 
   const chartData = useMemo(() => {
     const cutoff = getTimeRangeCutoff(timeRange).toISOString().split("T")[0];
+    // ISO date strings (YYYY-MM-DD) sort lexicographically
     return snapshotHistory.filter((s) => s.date >= cutoff);
   }, [snapshotHistory, timeRange]);
 
@@ -81,19 +61,19 @@ export function PortfolioChartContent({ snapshotHistory }: PortfolioChartProps) 
           Valorisation du portefeuille
         </h3>
         <div className="flex items-center gap-1.5">
-        {(Object.keys(timeRangeLabels) as TimeRange[]).map((range) => (
-          <button
-            key={range}
-            onClick={() => setTimeRange(range)}
-            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-              timeRange === range
-                ? "bg-emerald-400/15 text-emerald-300"
-                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-            }`}
-          >
-            {timeRangeLabels[range]}
-          </button>
-        ))}
+          {(Object.keys(timeRangeLabels) as TimeRange[]).map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                timeRange === range
+                  ? "bg-emerald-400/15 text-emerald-300"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              }`}
+            >
+              {timeRangeLabels[range]}
+            </button>
+          ))}
         </div>
       </div>
       <ChartContainer config={chartConfig} className="h-[300px] w-full">
