@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,24 +67,30 @@ export function ManualPositionEntry({ accounts }: ManualPositionEntryProps) {
     setRows((prev) => (prev.length === 1 ? [emptyRow()] : prev.filter((_, i) => i !== index)));
   };
 
+  const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/;
+
   const isFormValid = () => {
     if (!accountId) return false;
     return rows.every(
       (r) =>
-        r.isin.trim() !== "" &&
+        ISIN_RE.test(r.isin.trim().toUpperCase()) &&
         r.name.trim() !== "" &&
         parseFloat(r.quantity) > 0 &&
         parseFloat(r.avgCostPerUnit) > 0
     );
   };
 
-  const parsedPositions: ParsedPosition[] = rows.map((r) => ({
-    isin: r.isin.trim(),
-    name: r.name.trim(),
-    quantity: parseFloat(r.quantity),
-    avgCostPerUnit: parseFloat(r.avgCostPerUnit),
-    currency: r.currency || "EUR",
-  }));
+  const parsedPositions: ParsedPosition[] = useMemo(
+    () =>
+      rows.map((r) => ({
+        isin: r.isin.trim(),
+        name: r.name.trim(),
+        quantity: parseFloat(r.quantity),
+        avgCostPerUnit: parseFloat(r.avgCostPerUnit),
+        currency: r.currency || "EUR",
+      })),
+    [rows],
+  );
 
   const handleImport = async () => {
     if (!accountId || parsedPositions.length === 0) return;
