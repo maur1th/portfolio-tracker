@@ -17,6 +17,8 @@ import {
 import { computeExposure, getLastCountryWeightsFetchDate } from "@/lib/exposure";
 import { loadTargets } from "@/lib/targets";
 import { computeDcaSuggestions } from "@/lib/dca-suggestions";
+import { DipSignalCard } from "@/components/dip-signal-card";
+import { selectDipSignals } from "@/lib/dip-signals";
 
 export default async function HomePage() {
   const positions = await getPortfolioPositions();
@@ -79,9 +81,13 @@ export default async function HomePage() {
         })
       : [];
 
+  const dipSignals = selectDipSignals(positions);
+
   return (
     <div className="container mx-auto space-y-8 px-4 py-8">
       <PortfolioSummary positions={positions} snapshotHistory={snapshotHistory} />
+
+      <DipSignalCard signals={dipSignals} />
 
       <VAWidget
         config={vaConfig}

@@ -11,6 +11,7 @@ import { eq, desc, and, sql } from "drizzle-orm";
 import { convertToEUR } from "./currencies";
 import type { PortfolioPosition } from "@/types";
 import { buildAccountSparklineHistory } from "./account-sparklines";
+import { computeDrawdownFromHigh } from "./dip-signals";
 
 const SPARKLINE_WINDOW_SIZE = 12;
 
@@ -23,6 +24,7 @@ export async function getPortfolioPositions(): Promise<PortfolioPosition[]> {
       broker: brokers,
       price: {
         price: prices.price,
+        fiftyTwoWeekHigh: prices.fiftyTwoWeekHigh,
       },
     })
     .from(positions)
@@ -64,6 +66,12 @@ export async function getPortfolioPositions(): Promise<PortfolioPosition[]> {
     const gainLoss = totalValue - totalCost;
     const gainLossPercent = totalCost > 0 ? gainLoss / totalCost : 0;
 
+    // Computed in native currency; the high/low ratio is FX-independent.
+    const drawdownFromHigh = computeDrawdownFromHigh(
+      rawPrice,
+      row.price?.fiftyTwoWeekHigh ?? null
+    );
+
     portfolioPositions.push({
       position: { ...row.position, avgCostPerUnit: avgCostEUR },
       instrument: row.instrument,
@@ -74,6 +82,7 @@ export async function getPortfolioPositions(): Promise<PortfolioPosition[]> {
       totalCost,
       gainLoss,
       gainLossPercent,
+      drawdownFromHigh,
     });
   }
 

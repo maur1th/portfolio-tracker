@@ -37,6 +37,7 @@ function makePosition(overrides: {
     totalCost: overrides.totalValue * 0.9,
     gainLoss: overrides.totalValue * 0.1,
     gainLossPercent: 0.1,
+    drawdownFromHigh: null,
   };
 }
 
