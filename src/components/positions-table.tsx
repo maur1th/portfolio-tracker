@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatPercent, formatQuantity } from "@/lib/format";
-import { ArrowUpDown } from "lucide-react";
+import { yahooQuoteUrl } from "@/lib/links";
+import { ArrowUpDown, ExternalLink } from "lucide-react";
 import type { PortfolioPosition } from "@/types";
 import { usePrivacy } from "./privacy-provider";
 
@@ -175,7 +176,16 @@ export function PositionsTable({ positions }: PositionsTableProps) {
             <TableRow key={p.position.id}>
               <TableCell className="font-medium">{p.instrument.name}</TableCell>
               <TableCell className="font-mono text-sm">
-                {p.instrument.ticker}
+                <a
+                  href={yahooQuoteUrl(p.instrument.ticker)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`Voir ${p.instrument.ticker} sur Yahoo Finance`}
+                  className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+                >
+                  {p.instrument.ticker}
+                  <ExternalLink className="h-3 w-3 opacity-50" />
+                </a>
               </TableCell>
               <TableCell>
                 <Badge variant="outline">
