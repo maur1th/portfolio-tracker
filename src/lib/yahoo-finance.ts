@@ -271,38 +271,53 @@ export async function searchBySymbolAndName(
   }
 }
 
+export interface YahooQuote {
+  price: number;
+  fiftyTwoWeekHigh: number | null;
+}
+
+export async function fetchQuotes(
+  tickers: string[]
+): Promise<Map<string, YahooQuote>> {
+  const quoteMap = new Map<string, YahooQuote>();
+
+  if (tickers.length === 0) return quoteMap;
+
+  for (const ticker of tickers) {
+    try {
+      const queryOptions = { modules: ["price", "summaryDetail"] } as {
+        modules: Array<"price" | "summaryDetail">;
+      };
+      const result = await yahooFinance.quoteSummary(ticker, queryOptions);
+
+      if (result && result.price && result.price.regularMarketPrice) {
+        const currency = result.price.currency;
+        // Normalize GBp (pence) to GBP (pounds) for both price and high
+        const scale = currency === "GBp" || currency === "GBX" ? 1 / 100 : 1;
+
+        const rawHigh = result.summaryDetail?.fiftyTwoWeekHigh;
+        quoteMap.set(ticker, {
+          price: result.price.regularMarketPrice * scale,
+          fiftyTwoWeekHigh:
+            typeof rawHigh === "number" ? rawHigh * scale : null,
+        });
+      }
+    } catch (err) {
+      console.error(`Failed to fetch quote for ${ticker}:`, err);
+    }
+  }
+
+  return quoteMap;
+}
+
 export async function fetchPrices(
   tickers: string[]
 ): Promise<Map<string, number>> {
+  const quotes = await fetchQuotes(tickers);
   const priceMap = new Map<string, number>();
-
-  if (tickers.length === 0) return priceMap;
-
-  try {
-    for (const ticker of tickers) {
-      try {
-        const queryOptions = { modules: ["price"] } as { modules: Array<"price"> };
-        const result = await yahooFinance.quoteSummary(ticker, queryOptions);
-
-        if (result && result.price && result.price.regularMarketPrice) {
-          let price = result.price.regularMarketPrice;
-          const currency = result.price.currency;
-
-          // Normalize GBp (pence) to GBP (pounds)
-          if (currency === "GBp" || currency === "GBX") {
-            price = price / 100;
-          }
-
-          priceMap.set(ticker, price);
-        }
-      } catch (err) {
-        console.error(`Failed to fetch price for ${ticker}:`, err);
-      }
-    }
-  } catch (error) {
-    console.error("Failed to fetch prices:", error);
+  for (const [ticker, quote] of quotes) {
+    priceMap.set(ticker, quote.price);
   }
-
   return priceMap;
 }
 

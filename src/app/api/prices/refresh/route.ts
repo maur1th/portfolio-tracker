@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { instruments, prices, positions } from "@/db/schema";
-import { fetchPrices } from "@/lib/yahoo-finance";
+import { fetchQuotes } from "@/lib/yahoo-finance";
 import { refreshExchangeRates } from "@/lib/currencies";
 import { recordSnapshots } from "@/lib/snapshots";
 import { eq, inArray } from "drizzle-orm";
@@ -27,18 +27,19 @@ export async function POST() {
     await refreshExchangeRates(currencies);
 
     const tickers = allInstruments.map((i) => i.ticker);
-    const priceMap = await fetchPrices(tickers);
+    const quoteMap = await fetchQuotes(tickers);
 
     const now = new Date().toISOString();
     const updates = [];
 
-    for (const [ticker, price] of priceMap.entries()) {
+    for (const [ticker, quote] of quoteMap.entries()) {
       const instrument = allInstruments.find((i) => i.ticker === ticker);
       if (!instrument) continue;
 
       updates.push({
         instrumentId: instrument.id,
-        price,
+        price: quote.price,
+        fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
         date: now,
         fetchedAt: now,
       });

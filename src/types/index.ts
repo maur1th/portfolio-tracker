@@ -62,4 +62,6 @@ export interface PortfolioPosition {
   totalCost: number;
   gainLoss: number;
   gainLossPercent: number;
+  /** Drawdown vs 52-week high as a non-positive fraction; null if unknown. */
+  drawdownFromHigh: number | null;
 }

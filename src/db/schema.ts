@@ -75,6 +75,7 @@ export const prices = sqliteTable("prices", {
     .notNull()
     .references(() => instruments.id),
   price: real("price").notNull(),
+  fiftyTwoWeekHigh: real("fifty_two_week_high"),
   date: text("date").notNull(),
   fetchedAt: text("fetched_at").notNull(),
 });
