@@ -70,17 +70,27 @@ export async function searchByISIN(isin: string): Promise<string | null> {
           const data = firstResult.data;
           console.log(`[searchByISIN] Found ${data.length} results from OpenFIGI`);
 
-          const bestTicker = selectBestExchangeTicker(data);
-
-          if (bestTicker) {
-            console.log(`[searchByISIN] ✓ Using best primary exchange ticker: ${bestTicker}`);
-            return bestTicker;
+          // Validate candidates against Yahoo in exchange-preference order and
+          // return the first that actually resolves. The top-ranked ticker is
+          // not necessarily a real Yahoo symbol (e.g. currency-suffixed MTF
+          // listings on EP that format to a non-existent .PA ticker).
+          const rankedTickers = rankExchangeTickers(data);
+          const tried = new Set<string>();
+          for (const ticker of rankedTickers) {
+            tried.add(ticker);
+            const validated = await validateTicker(ticker);
+            if (validated) {
+              console.log(`[searchByISIN] ✓ Validated preferred exchange ticker: ${ticker}`);
+              return ticker;
+            }
           }
 
-          // If no primary exchange, try validating others
+          // Last resort: try remaining candidates (unknown exchange codes)
           for (const item of data) {
             if (item.ticker && item.exchCode) {
               const ticker = formatYahooTicker(item.ticker, item.exchCode);
+              if (tried.has(ticker)) continue;
+              tried.add(ticker);
               const validated = await validateTicker(ticker);
               if (validated) {
                 console.log(`[searchByISIN] ✓ Validated: ${ticker}`);
@@ -131,20 +141,43 @@ export interface OpenFIGIResult {
   exchCode?: string;
 }
 
-export function selectBestExchangeTicker(data: OpenFIGIResult[]): string | null {
-  let bestMatch: { ticker: string; rank: number } | null = null;
+/**
+ * Rank OpenFIGI listings by exchange preference and return their formatted
+ * Yahoo tickers, best first, deduplicated. Items on unrecognised exchanges are
+ * omitted. Ties keep their original encounter order.
+ */
+export function rankExchangeTickers(data: OpenFIGIResult[]): string[] {
+  const ranked: { ticker: string; rank: number; order: number }[] = [];
+  let order = 0;
 
   for (const item of data) {
     if (item.ticker && item.exchCode) {
       const rank = EXCHANGE_PREFERENCE.indexOf(item.exchCode.toUpperCase());
-      if (rank >= 0 && (bestMatch === null || rank < bestMatch.rank)) {
-        const ticker = formatYahooTicker(item.ticker, item.exchCode);
-        bestMatch = { ticker, rank };
+      if (rank >= 0) {
+        ranked.push({
+          ticker: formatYahooTicker(item.ticker, item.exchCode),
+          rank,
+          order: order++,
+        });
       }
     }
   }
 
-  return bestMatch?.ticker ?? null;
+  ranked.sort((a, b) => a.rank - b.rank || a.order - b.order);
+
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const { ticker } of ranked) {
+    if (!seen.has(ticker)) {
+      seen.add(ticker);
+      result.push(ticker);
+    }
+  }
+  return result;
+}
+
+export function selectBestExchangeTicker(data: OpenFIGIResult[]): string | null {
+  return rankExchangeTickers(data)[0] ?? null;
 }
 
 export function formatYahooTicker(ticker: string, exchCode: string): string {
