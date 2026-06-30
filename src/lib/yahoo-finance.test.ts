@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   formatYahooTicker,
   selectBestExchangeTicker,
+  rankExchangeTickers,
   EXCHANGE_PREFERENCE,
   type OpenFIGIResult,
 } from "./yahoo-finance";
@@ -114,5 +115,63 @@ describe("selectBestExchangeTicker", () => {
   it("respects full preference order", () => {
     // Verify the preference list order is what we expect
     expect(EXCHANGE_PREFERENCE).toEqual(["FP", "EP", "PA", "GR", "GY", "LN", "SW", "SE", "US"]);
+  });
+});
+
+describe("rankExchangeTickers", () => {
+  it("returns an empty array for empty data", () => {
+    expect(rankExchangeTickers([])).toEqual([]);
+  });
+
+  it("omits items on unrecognised exchanges", () => {
+    const data: OpenFIGIResult[] = [
+      { ticker: "FOO", exchCode: "ZZ" },
+      { ticker: "BAR", exchCode: "XX" },
+    ];
+    expect(rankExchangeTickers(data)).toEqual([]);
+  });
+
+  it("orders candidates by exchange preference, best first", () => {
+    const data: OpenFIGIResult[] = [
+      { ticker: "TTE", exchCode: "US" },
+      { ticker: "TTE", exchCode: "LN" },
+      { ticker: "TTE", exchCode: "FP" },
+    ];
+    expect(rankExchangeTickers(data)).toEqual(["TTE.PA", "TTE.L", "TTE"]);
+  });
+
+  it("deduplicates identical formatted tickers", () => {
+    const data: OpenFIGIResult[] = [
+      { ticker: "SAP", exchCode: "GR" },
+      { ticker: "SAP", exchCode: "GY" },
+    ];
+    expect(rankExchangeTickers(data)).toEqual(["SAP.DE"]);
+  });
+
+  it("falls through to a valid listing when the top exchange ticker is bogus (LU1781541252 case)", () => {
+    // OpenFIGI has no real Paris (FP) listing; the EP entries are currency-suffixed
+    // MTF lines that format to non-existent .PA tickers. The real listings are on
+    // GR (XETRA) and LN (London).
+    const data: OpenFIGIResult[] = [
+      { ticker: "LCUJEUR", exchCode: "EP" },
+      { ticker: "LCUJGBP", exchCode: "EP" },
+      { ticker: "LCUJ", exchCode: "GR" },
+      { ticker: "LCJP", exchCode: "LN" },
+    ];
+    expect(rankExchangeTickers(data)).toEqual([
+      "LCUJEUR.PA",
+      "LCUJGBP.PA",
+      "LCUJ.DE",
+      "LCJP.L",
+    ]);
+  });
+
+  it("selectBestExchangeTicker returns the first ranked candidate", () => {
+    const data: OpenFIGIResult[] = [
+      { ticker: "NESN", exchCode: "US" },
+      { ticker: "NESN", exchCode: "SW" },
+      { ticker: "NESN", exchCode: "GR" },
+    ];
+    expect(selectBestExchangeTicker(data)).toBe(rankExchangeTickers(data)[0]);
   });
 });
